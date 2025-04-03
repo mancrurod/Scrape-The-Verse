@@ -1,7 +1,7 @@
 
 # 🎶 Scrape The Verse
 
-*Because sometimes the API gives you nothing, and you still need to know what track 5 on “Folklore” is really saying.*
+*He wrote “Tangled Up in Blue,” she wrote “The Story of Us” — we wrote the code to ask if Swift could follow Dylan to Stockholm.*
 
 > 📚 This project is a full-blown, ETL-powered attempt to answer one brilliant, nerdy, and slightly unhinged question:  
 > **Can Taylor Swift win the Nobel Prize in Literature?**  
