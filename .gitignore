@@ -15,5 +15,8 @@ logs/
 # Other files
 objectives.txt
 
-# Raw files because of filename length
+# Raw files because of filen ame length
 raw/
+
+# Transformed files because of file name length
+transformations/

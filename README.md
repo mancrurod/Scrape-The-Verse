@@ -1,7 +1,7 @@
 
 # 🎶 Scrape The Verse
 
-*He wrote “Tangled Up in Blue,” she wrote “The Story of Us” — we wrote the code to ask if Swift could follow Dylan to Stockholm.*
+*He wrote “Tangled Up in Blue”, she wrote “The Story of Us” — we wrote the code to ask if Swift could follow Dylan to Stockholm.*
 
 > 📚 This project is a full-blown, ETL-powered attempt to answer one brilliant, nerdy, and slightly unhinged question:  
 > **Can Taylor Swift win the Nobel Prize in Literature?**  
