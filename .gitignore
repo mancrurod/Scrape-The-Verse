@@ -1,0 +1,19 @@
+# Environment files
+.env
+
+# Python cache files
+__pycache__/
+src/scraping/__pycache__/
+
+# Application-specific cache
+.cache
+.spotify_cache
+
+# Logs
+logs/
+
+# Other files
+objectives.txt
+
+# Raw files because of filename length
+raw/
