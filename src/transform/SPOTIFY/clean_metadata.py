@@ -1,42 +1,17 @@
 import pandas as pd
 from pathlib import Path
 
-# Define paths for raw input data and output transformations
 RAW_PATH = Path("raw/SPOTIFY")
 OUTPUT_BASE = Path("transformations/SPOTIFY")
 
 # Function to load CSV files
-def load_csv(track_csv, album_metadata_csv, artist_metadata_csv):
-    """
-    Load track, album metadata, and artist metadata CSV files into DataFrames.
-
-    Args:
-        track_csv (Path): Path to the track CSV file.
-        album_metadata_csv (Path): Path to the album metadata CSV file.
-        artist_metadata_csv (Path): Path to the artist metadata CSV file.
-
-    Returns:
-        tuple: DataFrames for tracks, album metadata, and artist metadata.
-    """
-    tracks = pd.read_csv(track_csv)  # Load track data
-    album_metadata = pd.read_csv(album_metadata_csv)  # Load album metadata
-    artist_metadata = pd.read_csv(artist_metadata_csv)  # Load artist metadata
-    return tracks, album_metadata, artist_metadata
+def load_csv(track_csv, album_metadata_csv):
+    tracks = pd.read_csv(track_csv)
+    album_metadata = pd.read_csv(album_metadata_csv)
+    return tracks, album_metadata
 
 # Function to merge CSV data
-def merge_csv(tracks, album_metadata, artist_metadata):
-    """
-    Merge track, album metadata, and artist metadata into a single DataFrame.
-
-    Args:
-        tracks (DataFrame): DataFrame containing track data.
-        album_metadata (DataFrame): DataFrame containing album metadata.
-        artist_metadata (DataFrame): DataFrame containing artist metadata.
-
-    Returns:
-        DataFrame: Merged DataFrame with additional artist metadata columns.
-    """
-    # Merge tracks with album metadata on album name
+def merge_csv(tracks, album_metadata):
     merged_df = pd.merge(
         tracks,
         album_metadata,
@@ -45,65 +20,65 @@ def merge_csv(tracks, album_metadata, artist_metadata):
         right_on="Name",
         suffixes=("", "_album")
     )
-
-    # Add artist metadata as additional columns
-    artist_info = artist_metadata.iloc[0].drop("Name").to_dict()
-    for key, value in artist_info.items():
-        merged_df[key] = value
-
     return merged_df
 
-# Function to clean the DataFrame
+# Function to clean and reorder the DataFrame
 def clean_df(df):
-    """
-    Clean the merged DataFrame by dropping unnecessary columns and renaming them.
-
-    Args:
-        df (DataFrame): Merged DataFrame.
-
-    Returns:
-        DataFrame: Cleaned DataFrame.
-    """
-    # Columns to drop from the DataFrame
     cols_to_drop = [
-        "Name_album", "Total Tracks", "Label", 
-        "Genres", "Album Type", "URI", "Followers"
+        "Name_album", "Total Tracks", "Label", "Genres", 
+        "Album Type", "URI", "Artists", "Release Date"
     ]
-    df.drop(columns=cols_to_drop, inplace=True)  # Drop unnecessary columns
+    df.drop(columns=cols_to_drop, inplace=True, errors="ignore")
+    
+    # Rename columns explicitly
+    df.rename(columns={
+        "Name": "SongName",
+        "Popularity": "SongPopularity",
+        "Popularity_album": "AlbumPopularity",
+        "Album": "AlbumName",
+        "Duration (ms)": "DurationMs",
+        "Release Date_album": "ReleaseDateAlbum"
+    }, inplace=True)
 
-    # Rename columns to follow a consistent naming convention
-    df.columns = [col.lower().replace(" ", "_").title().replace("_", "") for col in df.columns]
+    # Format columns
+    if "ReleaseDateAlbum" in df.columns:
+        df["ReleaseDateAlbum"] = pd.to_datetime(df["ReleaseDateAlbum"], errors="coerce").dt.strftime("%Y-%m-%d")
+    if "SongPopularity" in df.columns:
+        df["SongPopularity"] = pd.to_numeric(df["SongPopularity"], errors="coerce").fillna(0).astype(int)
+    if "Explicit" in df.columns:
+        df["Explicit"] = df["Explicit"].astype(bool)
+    if "DurationMs" in df.columns:
+        df["DurationMs"] = pd.to_numeric(df["DurationMs"], errors="coerce").fillna(0).astype(int)
+    if "AlbumPopularity" in df.columns:
+        df["AlbumPopularity"] = pd.to_numeric(df["AlbumPopularity"], errors="coerce").fillna(0).astype(int)
+
+    # Ensure column order
+    ordered_columns = [
+        "SongName", "SongPopularity", "Explicit", "DurationMs",
+        "AlbumName", "ReleaseDateAlbum", "AlbumPopularity"
+    ]
+    df = df[[col for col in ordered_columns if col in df.columns]]
 
     return df
 
+
+
 # Function to execute the transformation for all albums
 def run_transformation():
-    """
-    Perform the transformation process for all albums in the raw data directory.
-    This includes loading, merging, cleaning, and saving the transformed data.
-    """
-    # Iterate through each artist directory in the raw data path
     for artist_dir in RAW_PATH.iterdir():
-        if artist_dir.is_dir():  # Check if it's a directory
-            artist_metadata_csv = artist_dir / f"{artist_dir.name}_metadata.csv"
-
-            # Iterate through each album directory for the artist
+        if artist_dir.is_dir():
             for album_dir in artist_dir.iterdir():
-                if album_dir.is_dir():  # Check if it's a directory
+                if album_dir.is_dir():
                     track_csv = album_dir / f"{album_dir.name}.csv"
                     album_metadata_csv = album_dir / f"{album_dir.name}_album_metadata.csv"
 
-                    # Check if all required files exist
-                    if track_csv.exists() and album_metadata_csv.exists() and artist_metadata_csv.exists():
-                        # Load, merge, and clean the data
-                        tracks, album_metadata, artist_metadata = load_csv(track_csv, album_metadata_csv, artist_metadata_csv)
-                        merged_df = merge_csv(tracks, album_metadata, artist_metadata)
+                    if track_csv.exists() and album_metadata_csv.exists():
+                        tracks, album_metadata = load_csv(track_csv, album_metadata_csv)
+                        merged_df = merge_csv(tracks, album_metadata)
                         cleaned_df = clean_df(merged_df)
 
-                        # Save the cleaned DataFrame to the output directory
                         output_dir = OUTPUT_BASE / artist_dir.name / album_dir.name
                         output_dir.mkdir(parents=True, exist_ok=True)
                         cleaned_df.to_csv(output_dir / f"{album_dir.name}_transformed.csv", index=False)
 
-                        # Print success message
                         print(f"✅ Transformed file saved at: {output_dir}")
