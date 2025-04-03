@@ -1,9 +1,9 @@
+
 # 🎶 Scrape The Verse
 
-*Because sometimes the API gives you nothing, and you still need to know what track 3 on “Red (Taylor’s Version)” is about.*
+*Because sometimes the API gives you nothing, and you still need to know what track 5 on “Folklore” is really saying.*
 
-
-> 📚 This project is a data-driven investigation into a simple but profound question:  
+> 📚 This project is a full-blown, ETL-powered attempt to answer one brilliant, nerdy, and slightly unhinged question:  
 > **Can Taylor Swift win the Nobel Prize in Literature?**  
 > (Spoiler: if Bob Dylan did, why not her?)
 
@@ -17,36 +17,49 @@
 
 ## 🚀 What is this?
 
-**Scrape The Verse** is a modular Python project for scraping both **Spotify metadata** and **Genius lyrics** — by artist, by album, or in batch. It's designed to keep your scraping organized, retry failed requests, and give you clean data to play with.
+**Scrape The Verse** is a modular Python project for scraping **Spotify metadata** and **Genius lyrics** — by artist, album, or batch — with one literary mission in mind:  
+Build a clean, analyzable, structured dataset that helps us explore Taylor Swift’s lyrics like a Nobel committee might.
 
-Built to handle cases like:
-- You want all Bob Dylan albums in a structured folder with tracklists and metadata ✅  
-- You want all Taylor Swift lyrics saved as `.txt` files for a specific album ✅  
-- You need to retry that one album that failed because Genius was feeling moody ✅
+This is more than scraping. It’s data for a cultural argument.
 
-Yes — this is overkill. But it’s fun.
+Think of it as building the corpus for a PhD dissertation that never got written… until now.
 
 ---
 
-
 ## 🧠 Project Status
 
-**WIP** – Work in Progress. This project is evolving into a full **ETL pipeline**.
+**WIP** – This is a growing **ETL pipeline** for comparing Taylor Swift's songwriting to Bob Dylan's — the only musician to win the Nobel Prize in Literature.
 
-What we got so far:
+What we’ve got:
 
-- ✅ Modularized scraping system
-- ✅ Batch support (multiple albums, multiple artists)
-- ✅ Local caching of downloads
-- ✅ Logging for retrying failed albums or songs
+- ✅ Modular scraping (Spotify + Genius)
+- ✅ Batch support (multiple artists, albums)
+- ✅ Local file caching
+- ✅ Logging for retrying failed scrapes
 
-Planned and ongoing components:
-- ⏳ Data cleaning (normalize casing, remove duplicates, handle typos)
-- ⏳ Data merging (match Spotify tracks with Genius lyrics)
-- ⏳ Load to database (likely SQLite or PostgreSQL)
-- ⏳ Data visualization (dashboards, word frequency, sentiment?)
-- ❌ No full tests yet
-- ❌ No CLI or frontend (yet)
+What’s coming:
+
+- ⏳ Clean & normalize text data (titles, casing, typos)
+- ⏳ Merge metadata + lyrics (align tracks)
+- ⏳ Load into a queryable database (SQLite/PostgreSQL)
+- ⏳ Explore lyric complexity, sentiment, word patterns
+- ⏳ Visualize trends across albums and eras
+- ❌ Tests, CLI, and UI — still on the dream board
+
+---
+
+## 🕵️ The Mission
+
+This isn’t just a scraper. It’s a toolkit to build an argument with data.
+
+We want to know:
+- How do Taylor’s lyrics evolve over time?
+- Is her storytelling comparable to Dylan’s?
+- What poetic devices show up in her writing?
+- Can data defend pop as literature?
+
+Whether you're a Swiftie, a skeptic, or just like playing with Python, the goal is the same:
+**Put the lyrics under a microscope and see what we find.**
 
 ---
 
@@ -79,8 +92,6 @@ src/
 
 ## 📁 Output Files
 
-This scraper keeps things tidy. You’ll get:
-
 ```
 raw/
 ├── GENIUS/
@@ -98,6 +109,8 @@ logs/
     └── failed_albums_YYYY-MM-DD.log
 ```
 
+Everything organized so your future self (or your thesis advisor) will thank you.
+
 ---
 
 ## 🧪 Usage
@@ -106,36 +119,41 @@ logs/
 
 ### 🎤 Genius (lyrics)
 
-Run the batch mode (predefined artists and albums):
-
 ```bash
 python -m src.scraping.GENIUS.main_genius_scrap
 ```
 
-It'll scrape albums from artists like **Taylor Swift** and **Bob Dylan**, one by one. Lyrics go into `.txt` files, summaries into `.csv`.
+Scrapes lyrics from predefined albums/artists (yes, Taylor is in there). Outputs `.txt` and `.csv`.
 
 ### 🎧 Spotify (metadata)
-
-Interactive mode:
 
 ```bash
 python -m src.scraping.SPOTIFY.main_spoty_scrap
 ```
 
-Retry mode (albums that failed previously):
+Interactive — give it artists and albums, and it gives you track/album/artist metadata.
+
+### ♻️ Retry failed albums
 
 ```bash
 python -m src.scraping.SPOTIFY.retry_failed_albums
 ```
 
+Genius or Spotify flaked out? This handles retries based on log files.
+
 ---
 
-## ⚠️ Important Notes
+## ⚠️ Setup
 
-- Always run the modules **from the project root** with `python -m ...`
-- Requires a `.env` file with credentials:
-  - `SPOTIPY_CLIENT_ID`, `SPOTIPY_CLIENT_SECRET`, `SPOTIPY_REDIRECT_URI`
-  - `GENIUS_CLIENT_ACCESS_TOKEN`
+1. Run scripts **from the project root** with `python -m ...`
+2. Create a `.env` file with the following:
+
+```
+SPOTIPY_CLIENT_ID=...
+SPOTIPY_CLIENT_SECRET=...
+SPOTIPY_REDIRECT_URI=...
+GENIUS_CLIENT_ACCESS_TOKEN=...
+```
 
 ---
 
@@ -144,7 +162,7 @@ python -m src.scraping.SPOTIFY.retry_failed_albums
 - Python 3.10+
 - `spotipy`, `lyricsgenius`, `requests`, `beautifulsoup4`, `python-dotenv`
 
-Install with:
+Install everything with:
 
 ```bash
 pip install -r requirements.txt
@@ -152,38 +170,30 @@ pip install -r requirements.txt
 
 ---
 
-## 🧵 Why?
-
-Because scraping lyrics by hand is boring. Because APIs are flaky.  
-Because we once lost all lyrics from “Blonde on Blonde” in a crash.  
-And because if Dylan got a Nobel, we want the **data** to argue Swift could, too.  
-
----
-
 ## 🛠 To Do
 
-This project is focused on one question: **Can Taylor Swift win the Nobel Prize in Literature?**  
-The ETL pipeline will support that goal by enabling structured, analyzable lyric and metadata collection.
+The ETL is in motion — here’s what’s next on the roadmap:
 
-- [ ] Data cleaning (remove noise, normalize titles and structure)
-- [ ] Data merging (align Genius lyrics with Spotify track data)
-- [ ] Load to database for querying and cross-analysis
-- [ ] Build visualizations (lyric patterns, complexity, sentiment)
-- [ ] Final output: interactive or printable “lyricsbook”
-- [ ] Unit tests and robust error handling
+- [ ] Normalize and clean lyric text
+- [ ] Match Genius lyrics with Spotify metadata
+- [ ] Load everything into a database for analysis
+- [ ] Build visualizations (sentiment, complexity, themes)
+- [ ] Bonus: generate an interactive “LyricsBook”?
+- [ ] Add unit tests and robust exception handling
 
 ---
 
 ## 🤝 Contributing
 
-Pull requests are welcome. Just don’t start a flame war about which Dylan era is better.
+Pull requests welcome. Especially from Swifties with SQL skills.  
+Just… don’t fight about *Reputation* vs *Red* in the issues.
 
 ---
 
 ## ✨ Credits
 
-Built by a language-loving dev with an unhealthy playlist history.  
-Helped by ChatGPT. Inspired by verses.
+Built by a language nerd with an overactive playlist.  
+Inspired by literature, lyrics, and one very specific Nobel Prize.
 
 > “You’re on your own, kid — but the script runs fine.”  
 > — T. Swift, sort of.
