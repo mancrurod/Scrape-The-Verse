@@ -15,7 +15,11 @@ STEPS = [
     ("🔗 Join Lyrics + Metadata", "src/process/process.py"),
 
     # === LOAD ===
-    ("🚀 Load to PostgreSQL", "src/load/load.py")
+    ("🚀 Load to PostgreSQL", "src/load/load.py"),
+    
+    # === ANALYSIS ===
+    ("📊 Lyrics Analysis (Readability + Sentiment)", "src/analysis/analyze_lyrics.py")
+
 ]
 
 def run_step(name, script_path):

@@ -57,22 +57,32 @@ dependencies:
       - beautifulsoup4==4.13.3
       - certifi==2025.1.31
       - charset-normalizer==3.4.1
+      - click==8.1.8
+      - cmudict==1.0.32
       - greenlet==3.1.1
       - idna==3.10
+      - importlib-metadata==8.6.1
+      - importlib-resources==6.5.2
+      - joblib==1.4.2
       - lyricsgenius==3.3.1
+      - nltk==3.9.1
       - numpy==2.2.4
       - pandas==2.2.3
       - psycopg2-binary==2.9.10
+      - pyphen==0.17.2
       - python-dotenv==1.1.0
       - pytz==2025.2
       - redis==5.2.1
+      - regex==2024.11.6
       - requests==2.32.3
       - soupsieve==2.6
       - spotipy==2.25.1
       - sqlalchemy==2.0.40
+      - textstat==0.7.5
       - tqdm==4.67.1
       - typing-extensions==4.13.0
       - tzdata==2025.2
       - urllib3==2.3.0
       - wikipedia-api==0.8.1
+      - zipp==3.21.0
 prefix: C:\Users\manue\miniconda3\envs\scrape_the_verse
