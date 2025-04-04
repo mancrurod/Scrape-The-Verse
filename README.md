@@ -45,7 +45,7 @@ Coming next:
 
 ## 🗂 Folder Structure (updated)
 
-```
+```bash
 src/
 ├── extraction/
 │   ├── genius_extraction.py
@@ -59,9 +59,11 @@ src/
 │   └── process.py
 ├── load/
 │   └── load.py
+```
 
-# These folders are generated automatically when running the pipeline:
+These folders are generated automatically when running the pipeline:
 
+```bash
 logs/
 
 raw/
@@ -108,20 +110,16 @@ GENIUS_CLIENT_ACCESS_TOKEN=your_genius_token
 3. Install dependencies:
 
 Using pip:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 Or using conda:
+
 ```bash
 conda env create -f environment.yml
 conda activate scrape_the_verse
-```
-
-3. Install dependencies:
-
-```bash
-pip install -r requirements.txt
 ```
 
 ---
