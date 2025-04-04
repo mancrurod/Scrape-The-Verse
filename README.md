@@ -39,7 +39,6 @@ What we’ve got:
 Coming next:
 
 - ⏳ Visual analysis and dashboard
-- ⏳ Sentiment and readability scoring
 - ⏳ Songwriting evolution tracking
 
 ---
