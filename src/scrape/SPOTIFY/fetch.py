@@ -1,4 +1,4 @@
-from src.scraping.SPOTIFY.utils import with_retry
+from src.scrape.SPOTIFY.utils import with_retry
 
 # Retrieves the Spotify ID of an artist by their name
 def get_artist_id(sp, artist_name):

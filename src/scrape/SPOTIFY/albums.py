@@ -1,21 +1,20 @@
 import time
-from src.scraping.SPOTIFY.fetch import get_album_tracks, extract_track_metadata
-from src.scraping.SPOTIFY.storage import (
+from src.scrape.SPOTIFY.fetch import get_album_tracks, extract_track_metadata
+from src.scrape.SPOTIFY.storage import (
     album_fully_scraped,
     save_album_data,
     save_album_metadata,
     save_artist_metadata
 )
-from src.scraping.SPOTIFY.fetch import get_artist_id, get_artist_metadata
-from src.scraping.SPOTIFY.logging import log_failed_album
-from src.scraping.SPOTIFY.utils import with_retry
+from src.scrape.SPOTIFY.fetch import get_artist_id, get_artist_metadata
+from src.scrape.SPOTIFY.logging import log_failed_album
+from src.scrape.SPOTIFY.utils import with_retry
 from src.utils.fallback_manager import (
     load_fallbacks,
     save_fallbacks,
     auto_resolve_album_id,
     resolve_album_id_from_user
 )
-
 def scrape_artist_albums(sp, artist_name, albums):
     """
     Scrapes metadata and track data for a list of albums by a specific artist.
@@ -23,27 +22,28 @@ def scrape_artist_albums(sp, artist_name, albums):
     Args:
         sp: Spotify API client instance.
         artist_name (str): Name of the artist.
-        albums (list): List of album names to scrape.
+        albums (list): List of album dicts with 'name' and 'id'.
 
     Returns:
         None
     """
-    for album_name in albums:
-        # Skip if the album has already been scraped
+    for album in albums:
+        album_name = album.get('name')
+        album_id = album.get('id')
+
+        if not album_name or not album_id:
+            print(f"⚠️ Skipping invalid album entry: {album}")
+            continue
+
         if album_fully_scraped(artist_name, album_name):
             print(f"⏭️  Skipping '{album_name}' by {artist_name} (already scraped)")
             continue
 
         print(f"🎵 Processing album '{album_name}' for artist '{artist_name}'...")
-        # Search for the album using Spotify API
-        album_results = with_retry(sp.search, q=f"album:{album_name} artist:{artist_name}", type="album", limit=1)
 
-        if album_results["albums"]["items"]:
-            # Extract album ID and fetch metadata
-            album_id = album_results["albums"]["items"][0]["id"]
+        try:
             album_metadata = with_retry(sp.album, album_id)
 
-            # Simplify album metadata for storage
             simplified_album_metadata = {
                 "Name": album_metadata.get("name"),
                 "Release Date": album_metadata.get("release_date"),
@@ -56,21 +56,20 @@ def scrape_artist_albums(sp, artist_name, albums):
             }
             save_album_metadata(artist_name, album_name, simplified_album_metadata)
 
-            # Fetch and process track data
             tracks = get_album_tracks(sp, album_id)
-            time.sleep(2)  # Pause to avoid hitting API rate limits
+            time.sleep(2)
 
             track_data = []
             for track in tracks:
                 track_metadata = extract_track_metadata(sp, track["id"])
                 if track_metadata:
                     track_data.append(track_metadata)
-                time.sleep(0.4)  # Pause between track requests
+                time.sleep(0.4)
 
-            # Save track data
             save_album_data(artist_name, album_name, track_data)
-        else:
-            # Log if the album is not found
+        except Exception as e:
+            print(f"❌ Error processing album '{album_name}': {e}")
+            log_failed_album(artist_name, album_name)# Log if the album is not found
             print(f"⚠️ Album '{album_name}' by artist '{artist_name}' not found.")
             log_failed_album(artist_name, album_name)
 

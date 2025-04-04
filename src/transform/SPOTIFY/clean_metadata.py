@@ -42,7 +42,7 @@ def clean_df(df):
 
     # Format columns
     if "ReleaseDateAlbum" in df.columns:
-        df["ReleaseDateAlbum"] = pd.to_datetime(df["ReleaseDateAlbum"], errors="coerce").dt.strftime("%Y-%m-%d")
+        df["ReleaseDateAlbum"] = pd.to_datetime(df["ReleaseDateAlbum"], errors="coerce")
     if "SongPopularity" in df.columns:
         df["SongPopularity"] = pd.to_numeric(df["SongPopularity"], errors="coerce").fillna(0).astype(int)
     if "Explicit" in df.columns:

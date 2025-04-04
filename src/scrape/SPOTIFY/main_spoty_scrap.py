@@ -2,16 +2,16 @@
 # 📝 IMPORTANT:
 # This script must be run from the project root like this:
 # 
-#     python -m src.scraping.SPOTIFY.main_spoty_scrap
+#     python -m src.scrape.SPOTIFY.main_spoty_scrap
 # 
 # DO NOT run it directly (e.g., `python main_spoty_scrap.py`)
 # or you'll get ModuleNotFoundError due to package context.
 # ================================================================
 
 import sys
-from src.scraping.SPOTIFY.auth import connect_to_spotify  # Import function to authenticate with Spotify API
-from src.scraping.SPOTIFY.artist import scrape_full_artist  # Import function to scrape all data for an artist
-from src.scraping.SPOTIFY.albums import scrape_single_album  # Import function to scrape data for a single album
+from src.scrape.SPOTIFY.auth import connect_to_spotify  # Import function to authenticate with Spotify API
+from src.scrape.SPOTIFY.artist import scrape_full_artist  # Import function to scrape all data for an artist
+from src.scrape.SPOTIFY.albums import scrape_single_album  # Import function to scrape data for a single album
 
 def main():
     """

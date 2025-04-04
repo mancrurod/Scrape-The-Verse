@@ -2,7 +2,7 @@
 # 📝 IMPORTANT:
 # This script must be run from the project root like this:
 # 
-#     python -m src.scraping.SPOTIFY.retry_failed_albums
+#     python -m src.scrape.SPOTIFY.retry_failed_albums
 # 
 # DO NOT run it directly (e.g., `python retry_failed_albums.py`)
 # or you'll get ModuleNotFoundError due to package context.
@@ -11,8 +11,8 @@
 import sys
 from pathlib import Path
 
-from src.scraping.SPOTIFY.auth import connect_to_spotify
-from src.scraping.SPOTIFY.albums import scrape_single_album
+from src.scrape.SPOTIFY.auth import connect_to_spotify
+from src.scrape.SPOTIFY.albums import scrape_single_album
 
 # Function to load the latest log file containing failed albums
 def load_failed_log():

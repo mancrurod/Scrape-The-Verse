@@ -1,8 +1,8 @@
-from src.scraping.SPOTIFY.fetch import get_artist_id, get_artist_metadata
-from src.scraping.SPOTIFY.storage import save_artist_metadata
-from src.scraping.SPOTIFY.albums import scrape_artist_albums
-from src.scraping.SPOTIFY.logging import write_failed_log_to_file
-from src.scraping.SPOTIFY.utils import with_retry
+from src.scrape.SPOTIFY.fetch import get_artist_id, get_artist_metadata
+from src.scrape.SPOTIFY.storage import save_artist_metadata
+from src.scrape.SPOTIFY.albums import scrape_artist_albums
+from src.scrape.SPOTIFY.logging import write_failed_log_to_file
+from src.scrape.SPOTIFY.utils import with_retry
 
 def scrape_full_artist(sp, artist_name):
     """
@@ -52,9 +52,7 @@ def scrape_full_artist(sp, artist_name):
             unique_albums.append(album)
 
     print(f"📀 Albums found: {len(unique_albums)}")
-    # Extract album names for further scraping
-    album_names = [album["name"] for album in unique_albums]
-    # Scrape detailed album data
-    scrape_artist_albums(sp, artist_name, album_names)
+    album_refs = [{"name": album["name"], "id": album["id"]} for album in unique_albums]
+    scrape_artist_albums(sp, artist_name, album_refs)
     # Write any failed logs to a file
     write_failed_log_to_file()

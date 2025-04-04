@@ -20,3 +20,6 @@ raw/
 
 # Transformed files because of file name length
 transformations/
+
+# Processed files
+processed/

@@ -1,6 +1,6 @@
 import pandas as pd
 from pathlib import Path
-from src.scraping.SPOTIFY.utils import sanitize, get_artist_folder
+from src.scrape.SPOTIFY.utils import sanitize, get_artist_folder
 
 def save_album_data(artist_name, album_name, track_data):
     """
