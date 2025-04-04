@@ -34,6 +34,7 @@ What we’ve got:
 - ✅ Lyrics text cleaning and transformation
 - ✅ Metadata merging: Genius + Spotify + Wikidata
 - ✅ Multi-artist support for loading into PostgreSQL
+- ✅ Readability + sentiment scoring for every song (Flesch, VADER)
 
 Coming next:
 
@@ -59,6 +60,8 @@ src/
 │   └── process.py
 ├── load/
 │   └── load.py
+├── analysis/
+│   └── analyze_lyrics.py
 ```
 
 These folders are generated automatically when running the pipeline:
