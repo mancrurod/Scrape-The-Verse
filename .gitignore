@@ -14,8 +14,9 @@ logs/
 
 # Other files
 objectives.txt
+test_load_final_csv.ipynb
 
-# Raw files because of filen ame length
+# Raw files because of file name length
 raw/
 
 # Transformed files because of file name length
