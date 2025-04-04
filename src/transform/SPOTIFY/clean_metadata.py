@@ -62,7 +62,6 @@ def clean_df(df):
     return df
 
 
-
 # Function to execute the transformation for all albums
 def run_transformation():
     for artist_dir in RAW_PATH.iterdir():
