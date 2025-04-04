@@ -43,3 +43,33 @@ def clean_lyrics_folder_recursive(input_base: str, output_base: str) -> None:
             f.writelines(cleaned_lines)
 
         print(f"✅ Cleaned: {relative_path}")
+
+
+def main():
+    print("\n🧼 Genius Lyrics Cleaner (multi-artist mode)\n")
+
+    while True:
+        artist = input("🎤 Enter artist name (or type 'exit' to quit): ").strip()
+        if artist.lower() == "exit":
+            print("\n👋 Exiting lyrics cleaner. See you next time!\n")
+            break
+        if not artist:
+            print("⚠️ Please enter a valid artist name.\n")
+            continue
+
+        input_folder = Path(f"raw/GENIUS/{artist}")
+        output_folder = Path(f"transformations/GENIUS/{artist}")
+
+        # Always re-clean lyrics, even if output already exists
+        print(f"🔄 Overwriting cleaned lyrics for '{artist}'...\n")
+
+        if not input_folder.exists():
+            print(f"❌ No raw lyrics found for: {artist}\n")
+            continue
+
+        clean_lyrics_folder_recursive(str(input_folder), str(output_folder))
+        print(f"\n🎉 All lyrics for '{artist}' have been cleaned and saved to: {output_folder}\n")
+
+
+if __name__ == "__main__":
+    main()

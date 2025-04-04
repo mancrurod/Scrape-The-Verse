@@ -7,6 +7,7 @@ comm==0.2.2
 debugpy==1.8.12
 decorator==5.1.1
 executing==2.2.0
+greenlet==3.1.1
 idna==3.10
 ipykernel==6.29.5
 ipython==8.32.0
@@ -23,6 +24,7 @@ parso==0.8.4
 platformdirs==4.3.6
 prompt_toolkit==3.0.50
 psutil==6.1.1
+psycopg2-binary==2.9.10
 pure_eval==0.2.3
 Pygments==2.19.1
 python-dateutil @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/python-dateutil_1729038406576/work
@@ -36,6 +38,7 @@ setuptools==75.8.0
 six @ file:///tmp/build/80754af9/six_1644875935023/work
 soupsieve==2.6
 spotipy==2.25.1
+SQLAlchemy==2.0.40
 stack-data==0.6.3
 tornado==6.4.2
 tqdm==4.67.1
