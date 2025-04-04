@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from src.scraping.GENIUS.utils import slugify, clean_up
+from src.scrape.GENIUS.utils import slugify, clean_up
 
 def get_all_songs_from_album(artist: str, album_name: str):
     """

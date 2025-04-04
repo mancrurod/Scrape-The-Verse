@@ -8,8 +8,8 @@
 # or you'll get ModuleNotFoundError due to package context.
 # ================================================================
 
-from src.scraping.GENIUS.lyrics import download_album_lyrics  # Import function to download lyrics for an album
-from src.scraping.GENIUS.logging import log_failed_lyrics  # Import function to log failed lyric downloads
+from src.scrape.GENIUS.lyrics import download_album_lyrics  # Import function to download lyrics for an album
+from src.scrape.GENIUS.logging import log_failed_lyrics  # Import function to log failed lyric downloads
 
 def main():
     """

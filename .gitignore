@@ -15,6 +15,7 @@ logs/
 # Other files
 objectives.txt
 test_load_final_csv.ipynb
+db_data.txt
 
 # Raw files because of file name length
 raw/

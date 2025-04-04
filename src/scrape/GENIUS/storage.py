@@ -1,6 +1,6 @@
 from csv import DictWriter
 from pathlib import Path
-from src.scraping.GENIUS.utils import sanitize, get_artist_folder
+from src.scrape.GENIUS.utils import sanitize, get_artist_folder
 
 def get_album_path(artist_name: str, album_name: str) -> Path:
     """

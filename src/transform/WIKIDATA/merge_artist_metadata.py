@@ -31,11 +31,6 @@ def merge_artist_metadata(spotify_csv_path: str, wikidata_csv_path: str, output_
             merged_df["DateOfBirth"], errors="coerce"
         ).dt.strftime("%Y-%m-%d")
 
-    # Format WorkPeriodStart as year (YYYY)
-    if "WorkPeriodStart" in merged_df.columns:
-        merged_df["WorkPeriodStart"] = pd.to_datetime(
-            merged_df["WorkPeriodStart"], errors="coerce"
-        ).dt.strftime("%Y")
 
     # Convert Followers and Popularity to numeric
     for col in ["Followers", "Popularity"]:

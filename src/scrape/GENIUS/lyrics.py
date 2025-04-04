@@ -1,12 +1,12 @@
 import time
-from src.scraping.GENIUS.auth import get_genius_client  # Import function to authenticate and get Genius API client
-from src.scraping.GENIUS.fetch import get_all_songs_from_album  # Import function to fetch all songs from an album
-from src.scraping.GENIUS.storage import (  # Import functions for file storage and album summary handling
+from src.scrape.GENIUS.auth import get_genius_client  # Import function to authenticate and get Genius API client
+from src.scrape.GENIUS.fetch import get_all_songs_from_album  # Import function to fetch all songs from an album
+from src.scrape.GENIUS.storage import (  # Import functions for file storage and album summary handling
     get_album_path,
     save_lyrics_to_file,
     save_album_summary_csv
 )
-from src.scraping.GENIUS.logging import log_failed_lyrics  # Import function to log failed lyric fetch attempts
+from src.scrape.GENIUS.logging import log_failed_lyrics  # Import function to log failed lyric fetch attempts
 
 def download_album_lyrics(artist: str, album_name: str):
     """
