@@ -82,7 +82,7 @@ def join_album(artist_name: str, album_name: str):
         print(f"📄 Copied artist metadata to {metadata_dst}")
 
 def main():
-    print("\n🧬 Genius + Spotify Lyrics Processor (multi-artist mode)\n")
+    print("\n🔗 Genius + Spotify Lyrics Processor \n")
 
     while True:
         artist = input("🎤 Enter artist name (or type 'exit' to quit): ").strip()
