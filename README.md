@@ -121,16 +121,6 @@ You can run the full flow manually via:
 python main.py
 ```
 
-Or call individual scripts for each phase:
-
-- `extraction/` → Spotify, Genius, Wikidata scrapers  
-- `transformation/` → Clean & merge  
-- `process/` → Match lyrics to songs  
-- `analysis/` → Run NLP analysis (readability, sentiment, word count)  
-- `load/` → Load everything into PostgreSQL  
-
-Each step is interactive, smart (skips duplicates), and multi-artist ready.
-
 ---
 
 ## 📊 Database Schema
