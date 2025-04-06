@@ -40,35 +40,36 @@ Build a clean, analyzable dataset to explore **songwriting quality** through the
 
 ---
 
-## 🗂 Folder Structure
+## 📁 Project Structure
 
+```text
 src/
-├── analysis/  
-│   └── analyze_lyrics.py  
-├── extraction/  
-│   ├── genius_extraction.py  
-│   ├── spotify_extraction.py  
-│   └── wikidata_extraction.py  
-├── transformation/  
-│   ├── genius_transformation.py  
-│   ├── spotify_transformation.py  
-│   └── wikidata_transformation.py  
-├── process/  
-│   └── process.py  
-├── load/  
-│   └── load.py  
+├── analysis/
+│   └── analyze_lyrics.py
+├── extraction/
+│   ├── genius_extraction.py
+│   ├── spotify_extraction.py
+│   └── wikidata_extraction.py
+├── transformation/
+│   ├── genius_transformation.py
+│   ├── spotify_transformation.py
+│   └── wikidata_transformation.py
+├── process/
+│   └── process.py
+├── load/
+│   └── load.py
 
-raw/  
-├── GENIUS/  
-├── SPOTIFY/  
+raw/
+├── GENIUS/
+├── SPOTIFY/
 └── WIKIDATA/
 
-transformations/  
-├── GENIUS/  
+transformations/
+├── GENIUS/
 └── SPOTIFY/
 
-processed/  
-└── <artist>/  
+processed/
+└── <artist>/
     └── <album>_final.csv
 
 logs/
