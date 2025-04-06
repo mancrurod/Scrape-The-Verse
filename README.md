@@ -73,6 +73,7 @@ processed/
     └── <album>_final.csv
 
 logs/
+```
 
 ---
 
