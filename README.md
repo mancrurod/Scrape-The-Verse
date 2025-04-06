@@ -6,130 +6,157 @@
 > **Can Taylor Swift win the Nobel Prize in Literature?**  
 > (Spoiler: if Bob Dylan did, why not her?)
 
-> *“There’s no success like failure, and failure’s no success at all.”*  
-> — Bob Dylan
-
-> *“I want to be defined by the things that I love.”*  
-> — Taylor Swift
+> *“There’s no success like failure, and failure’s no success at all.”* — Bob Dylan  
+> *“I want to be defined by the things that I love.”* — Taylor Swift
 
 ---
 
 ## 🚀 What is this?
 
-**Scrape The Verse** is a modular Python project for scraping and processing **Spotify metadata**, **Genius lyrics**, and **Wikidata metadata**—by artist and album—with one literary mission in mind:  
-Build a clean, analyzable, structured dataset that helps us explore Taylor Swift’s lyrics like a Nobel committee might.
+**Scrape The Verse** is a modular ETL pipeline built in Python to scrape and analyze:
+
+- 🎧 Spotify metadata (artists, albums, songs)
+- 📝 Genius lyrics (by album)
+- 🧠 Wikidata metadata (biographical and artistic traits)
+
+...with one literary mission:  
+Build a clean, analyzable dataset to explore **songwriting quality** through the lens of literary merit.
 
 ---
 
 ## 🧠 Project Status
 
-**Stable** – This is a complete **ETL pipeline** for comparing Taylor Swift's songwriting to Bob Dylan's—the only musician to win the Nobel Prize in Literature.
+**Stable and modular** – The project is fully functional and organized as a clean ETL pipeline with plug-and-play components.
 
-What we’ve got:
+### ✅ Core Features
 
-- ✅ Modular and interactive scraping (Spotify, Genius, Wikidata)
-- ✅ Skips already processed items (no duplicate API calls)
-- ✅ Batch support: process multiple albums and artists
-- ✅ Logs for missing items and failed lyrics
-- ✅ Lyrics text cleaning and transformation
-- ✅ Metadata merging: Genius + Spotify + Wikidata
-- ✅ Multi-artist support for loading into PostgreSQL
-- ✅ Readability + sentiment scoring for every song (Flesch, VADER)
-
-Coming next:
-
-- ⏳ Visual analysis and dashboard
-- ⏳ Songwriting evolution tracking
+- Spotify, Genius & Wikidata scrapers  
+- Lyrics + metadata merging and transformation  
+- Song-level stats: readability, sentiment, lexical density  
+- Album- and track-level word frequency tables (for word clouds!)  
+- PostgreSQL loader with relational schema  
+- Fully interactive CLI for each pipeline step  
+- Batch processing & log tracking for errors or missing data
 
 ---
 
-## 🗂 Folder Structure (updated)
+## 🗂 Folder Structure
 
-```bash
 src/
-├── extraction/
-│   ├── genius_extraction.py
-│   ├── spotify_extraction.py
-│   └── wikidata_extraction.py
-├── transformation/
-│   ├── genius_transformation.py
-│   ├── spotify_transformation.py
-│   └── wikidata_transformation.py
-├── process/
-│   └── process.py
-├── load/
-│   └── load.py
-├── analysis/
-│   └── analyze_lyrics.py
-```
+├── analysis/  
+│   └── analyze_lyrics.py  
+├── extraction/  
+│   ├── genius_extraction.py  
+│   ├── spotify_extraction.py  
+│   └── wikidata_extraction.py  
+├── transformation/  
+│   ├── genius_transformation.py  
+│   ├── spotify_transformation.py  
+│   └── wikidata_transformation.py  
+├── process/  
+│   └── process.py  
+├── load/  
+│   └── load.py  
 
-These folders are generated automatically when running the pipeline:
-
-```bash
-logs/
-
-raw/
-├── GENIUS/
-├── SPOTIFY/
+raw/  
+├── GENIUS/  
+├── SPOTIFY/  
 └── WIKIDATA/
 
-transformations/
-├── GENIUS/
+transformations/  
+├── GENIUS/  
 └── SPOTIFY/
 
-processed/
-└── <artist name>/
-```
+processed/  
+└── <artist>/  
+    └── <album>_final.csv
+
+logs/
 
 ---
 
-## 🧪 How to Run the Full Pipeline
-
-From the root of the project:
-
-```bash
-python main.py
-```
-
-You’ll be guided step-by-step through scraping, transforming, processing, and loading.
-
-All stages are interactive and **multi-artist ready**. Already processed items are skipped automatically.
-
----
-
-## 🧰 Setup
+## ⚙️ Setup
 
 1. Clone the repo
-2. Create a `.env` file:
 
+```bash
+git clone https://github.com/<your-username>/Scrape-The-Verse.git
+cd Scrape-The-Verse
 ```
+
+2. Create your `.env` file:
+
+```dotenv
 SPOTIPY_CLIENT_ID=your_spotify_id
 SPOTIPY_CLIENT_SECRET=your_spotify_secret
 SPOTIPY_REDIRECT_URI=http://localhost:8080
 GENIUS_CLIENT_ACCESS_TOKEN=your_genius_token
+POSTGRES_DB=your_database
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
 ```
 
 3. Install dependencies:
 
-Using pip:
-
 ```bash
+# Using pip
 pip install -r requirements.txt
-```
 
-Or using conda:
-
-```bash
+# Or using conda
 conda env create -f environment.yml
 conda activate scrape_the_verse
 ```
 
 ---
 
+## ▶️ How to Run the Pipeline
+
+You can run the full flow manually via:
+
+```bash
+python main.py
+```
+
+Or call individual scripts for each phase:
+
+- `extraction/` → Spotify, Genius, Wikidata scrapers  
+- `transformation/` → Clean & merge  
+- `process/` → Match lyrics to songs  
+- `analysis/` → Run NLP analysis (readability, sentiment, word count)  
+- `load/` → Load everything into PostgreSQL  
+
+Each step is interactive, smart (skips duplicates), and multi-artist ready.
+
+---
+
+## 📊 Database Schema
+
+Includes:
+
+- `artists`: identity & biography  
+- `albums`: linked to artist  
+- `tracks`: song-level data  
+- `lyrics`: raw text + readability, sentiment, lexical stats  
+- `word_frequencies_track`: for song-level word clouds  
+- `word_frequencies_album`: for album-level word clouds
+
+---
+
+## 💡 Example Use Cases
+
+- Compare **lexical density** of Bob Dylan vs Taylor Swift  
+- Visualize **frequent motifs** (love, time, silence...) by album  
+- Track evolution of **sentiment** or **explicitness** across eras  
+- Build dashboards to answer: *"Is this Nobel-worthy poetry?"*
+
+---
+
 ## 🤝 Contributing
 
-Pull requests welcome. Especially from Swifties with SQL skills.  
-Just… don’t fight about *Reputation* vs *Red* in the issues.
+Pull requests welcome – especially from Swifties who know SQL.  
+Just… please don’t fight about *Folklore* vs *1989* in the issues.
 
 ---
 

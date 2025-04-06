@@ -6,7 +6,8 @@ import psycopg2
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
 
-# === CONFIG ===
+# === CONFIGURATION ===
+# Load environment variables from .env file for DB credentials
 load_dotenv(Path(".env"))
 DB_PARAMS = {
     "dbname": os.getenv("POSTGRES_DB"),
@@ -18,7 +19,11 @@ DB_PARAMS = {
 PROCESSED_DIR = Path("processed")
 
 # === UTILS ===
+
 def to_python_type(val):
+    """
+    Convert NumPy data types to native Python types for DB insertion.
+    """
     if pd.isna(val):
         return None
     if isinstance(val, (np.integer, np.int64)):
@@ -29,11 +34,25 @@ def to_python_type(val):
         return bool(val)
     return val
 
-# === DB ===
+# === DATABASE CONNECTION ===
+
 def connect_db():
+    """
+    Establish a connection to the PostgreSQL database using credentials from .env.
+    """
     return psycopg2.connect(**DB_PARAMS)
 
 def create_tables(cursor):
+    """
+    Create all required tables in PostgreSQL if they don't already exist.
+    Includes:
+    - artists
+    - albums
+    - tracks
+    - lyrics
+    - word_frequencies_track
+    - word_frequencies_album
+    """
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS artists (
             id SERIAL PRIMARY KEY,
@@ -70,12 +89,42 @@ def create_tables(cursor):
             track_id INTEGER PRIMARY KEY REFERENCES tracks(id),
             text TEXT,
             readability_score REAL,
-            sentiment_score REAL
+            sentiment_score REAL,
+            word_count INTEGER,
+            line_count INTEGER,
+            char_count INTEGER,
+            lexical_density REAL
+        );
+        CREATE TABLE IF NOT EXISTS word_frequencies_track (
+            track_id INTEGER REFERENCES tracks(id),
+            artist TEXT,
+            album TEXT,
+            track_name TEXT,
+            word TEXT,
+            count INTEGER,
+            UNIQUE (track_id, word)
+        );
+        CREATE TABLE IF NOT EXISTS word_frequencies_album (
+            artist TEXT,
+            album TEXT,
+            word TEXT,
+            count INTEGER,
+            UNIQUE (artist, album, word)
         );
     """)
 
-# === PARSING ===
+# === CSV PARSERS ===
+
 def parse_artist_csv(path: Path) -> dict:
+    """
+    Parse artist-level metadata from merged CSV.
+
+    Args:
+        path (Path): Path to the merged metadata CSV.
+
+    Returns:
+        dict: Dictionary with artist metadata.
+    """
     row = pd.read_csv(path).iloc[0]
     return {
         "name": row.get("Name"),
@@ -90,6 +139,15 @@ def parse_artist_csv(path: Path) -> dict:
     }
 
 def parse_album_csv(path: Path):
+    """
+    Parse track-level metadata for an album from its final CSV file.
+
+    Args:
+        path (Path): Path to the album's transformed CSV.
+
+    Returns:
+        tuple: (album metadata dict, list of tracks with optional lyrics)
+    """
     df = pd.read_csv(path)
     df.fillna("", inplace=True)
     album = df.iloc[0]
@@ -110,8 +168,12 @@ def parse_album_csv(path: Path):
         })
     return album_data, tracks
 
-# === INSERTS ===
+# === DATABASE INSERTS ===
+
 def insert_artist(cursor, artist):
+    """
+    Insert artist record into the artists table.
+    """
     cursor.execute("""
         INSERT INTO artists (name, birth_name, birth_date, birth_place, country,
         active_years, genres, instruments, vocal_type)
@@ -122,6 +184,9 @@ def insert_artist(cursor, artist):
     return result[0] if result else None
 
 def insert_album(cursor, album, artist_id):
+    """
+    Insert album record into the albums table.
+    """
     cursor.execute("""
         INSERT INTO albums (name, artist_id, release_date, popularity)
         VALUES (%s, %s, %s, %s)
@@ -136,6 +201,9 @@ def insert_album(cursor, album, artist_id):
     return result[0] if result else None
 
 def insert_tracks(cursor, tracks, album_id):
+    """
+    Insert multiple track records into the tracks table.
+    """
     values = [(
         to_python_type(t["name"]),
         to_python_type(album_id),
@@ -152,10 +220,16 @@ def insert_tracks(cursor, tracks, album_id):
     """, values)
 
 def get_track_name_to_id(cursor, album_id):
+    """
+    Map track names to their corresponding IDs for a given album.
+    """
     cursor.execute("SELECT id, name FROM tracks WHERE album_id = %s;", (album_id,))
     return {name: track_id for track_id, name in cursor.fetchall()}
 
 def insert_lyrics(cursor, tracks, track_name_to_id):
+    """
+    Insert lyrics for each track into the lyrics table.
+    """
     for t in tracks:
         track_id = track_name_to_id.get(t["name"])
         if not track_id:
@@ -167,8 +241,13 @@ def insert_lyrics(cursor, tracks, track_name_to_id):
             ON CONFLICT (track_id) DO NOTHING;
         """, (track_id, to_python_type(t["lyrics"])))
 
-# === MAIN ===
+# === MAIN FUNCTION ===
+
 def main():
+    """
+    CLI for loading processed artist and album data into PostgreSQL.
+    Iteratively prompts the user for artist names and loads all albums and lyrics found.
+    """
     conn = connect_db()
     cursor = conn.cursor()
     create_tables(cursor)
@@ -192,10 +271,7 @@ def main():
         artist_data = parse_artist_csv(artist_csv)
         artist_id = insert_artist(cursor, artist_data)
         if not artist_id:
-            cursor.execute(
-                "SELECT id FROM artists WHERE name = %s",
-                (to_python_type(artist_data["name"]),)
-            )
+            cursor.execute("SELECT id FROM artists WHERE name = %s", (to_python_type(artist_data["name"]),))
             res = cursor.fetchone()
             artist_id = res[0] if res else None
 
@@ -210,17 +286,18 @@ def main():
                 print(f"\n   💿 Album: {album_dir.name}")
                 album_data, tracks_data = parse_album_csv(file)
                 album_id = insert_album(cursor, album_data, artist_id)
-            if not album_id:
-                cursor.execute(
-                    "SELECT id FROM albums WHERE name = %s AND artist_id = %s",
-                    (to_python_type(str(album_data["name"])), to_python_type(artist_id))
-                )
-                res = cursor.fetchone()
-                album_id = res[0] if res else None
+                if not album_id:
+                    cursor.execute(
+                        "SELECT id FROM albums WHERE name = %s AND artist_id = %s",
+                        (to_python_type(str(album_data["name"])), to_python_type(artist_id))
+                    )
+                    res = cursor.fetchone()
+                    album_id = res[0] if res else None
 
                 if not album_id:
                     print("❌ Could not insert or retrieve the album ID.")
                     continue
+
                 insert_tracks(cursor, tracks_data, album_id)
                 track_id_map = get_track_name_to_id(cursor, album_id)
                 insert_lyrics(cursor, tracks_data, track_id_map)

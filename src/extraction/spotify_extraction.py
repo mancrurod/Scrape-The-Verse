@@ -11,15 +11,24 @@ from datetime import datetime
 # =============== UTILS ===============
 
 def sanitize(name: str) -> str:
+    """
+    Replace invalid filename characters with hyphens.
+    """
     invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
     for char in invalid_chars:
         name = name.replace(char, '-')
     return name.strip()
 
 def get_artist_folder(artist_name: str) -> str:
+    """
+    Return a safe folder name for the artist.
+    """
     return sanitize(artist_name)
 
 def with_retry(request_fn, *args, max_retries=5, **kwargs):
+    """
+    Retry wrapper for API calls with exponential backoff and rate-limit handling.
+    """
     retry_count = 0
     while retry_count < max_retries:
         try:
@@ -43,11 +52,12 @@ def with_retry(request_fn, *args, max_retries=5, **kwargs):
 # =============== AUTH ===============
 
 def load_credentials():
-
+    """
+    Load Spotify credentials from the .env file.
+    """
     env_path = Path(__file__).resolve().parents[2] / ".env"
     if not env_path.exists():
         raise Exception(f".env file not found at {env_path}")
-
     load_dotenv(dotenv_path=env_path)
 
     client_id = os.getenv("SPOTIPY_CLIENT_ID")
@@ -59,9 +69,10 @@ def load_credentials():
 
     return client_id, client_secret, redirect_uri
 
-
-
 def connect_to_spotify():
+    """
+    Authenticate and return a Spotipy client.
+    """
     client_id, client_secret, redirect_uri = load_credentials()
     scope = "user-library-read user-read-private playlist-read-private"
     auth_manager = SpotifyOAuth(
@@ -80,14 +91,23 @@ def connect_to_spotify():
 # =============== FETCH ===============
 
 def get_artist_id(sp, artist_name):
+    """
+    Search Spotify and return the artist's ID if found.
+    """
     results = with_retry(sp.search, q=f"artist:{artist_name}", type="artist", limit=1)
     items = results.get("artists", {}).get("items", [])
     return items[0]["id"] if items else None
 
 def get_artist_metadata(sp, artist_id):
+    """
+    Fetch artist metadata by ID.
+    """
     return with_retry(sp.artist, artist_id)
 
 def get_album_tracks(sp, album_id):
+    """
+    Fetch all tracks from an album, handling pagination.
+    """
     results = with_retry(sp.album_tracks, album_id)
     tracks = results['items']
     while results['next']:
@@ -96,6 +116,9 @@ def get_album_tracks(sp, album_id):
     return tracks
 
 def extract_track_metadata(sp, track_id):
+    """
+    Extract relevant metadata from a single track.
+    """
     try:
         track_info = with_retry(sp.track, track_id)
         return {
@@ -114,6 +137,9 @@ def extract_track_metadata(sp, track_id):
 # =============== STORAGE ===============
 
 def save_album_data(artist_name, album_name, track_data):
+    """
+    Save track-level data to a CSV file.
+    """
     base_path = Path("raw")
     artist_folder = get_artist_folder(artist_name)
     album_folder = sanitize(album_name)
@@ -124,6 +150,9 @@ def save_album_data(artist_name, album_name, track_data):
     print(f"✅ Saved: {full_path / f'{album_folder}.csv'}")
 
 def save_artist_metadata(artist_name, artist_metadata):
+    """
+    Save artist-level metadata to a CSV file.
+    """
     base_path = Path("raw")
     artist_folder = get_artist_folder(artist_name)
     full_path = base_path / "SPOTIFY" / artist_folder
@@ -133,6 +162,9 @@ def save_artist_metadata(artist_name, artist_metadata):
     print(f"✅ Saved artist metadata: {full_path / f'{artist_folder}_metadata.csv'}")
 
 def save_album_metadata(artist_name, album_name, album_metadata):
+    """
+    Save album-level metadata to a CSV file.
+    """
     base_path = Path("raw")
     artist_folder = get_artist_folder(artist_name)
     album_folder = sanitize(album_name)
@@ -143,6 +175,9 @@ def save_album_metadata(artist_name, album_name, album_metadata):
     print(f"✅ Saved album metadata: {full_path / f'{album_folder}_album_metadata.csv'}")
 
 def album_fully_scraped(artist_name, album_name):
+    """
+    Check if all expected output files exist for the album.
+    """
     base_path = Path("raw")
     artist_folder = get_artist_folder(artist_name)
     album_folder = sanitize(album_name)
@@ -157,9 +192,15 @@ def album_fully_scraped(artist_name, album_name):
 failed_album_log = []
 
 def log_failed_album(artist_name, album_name):
+    """
+    Add a failed album scrape to the log list.
+    """
     failed_album_log.append((artist_name, album_name))
 
 def write_failed_log_to_file():
+    """
+    Write all failed albums to a timestamped log file.
+    """
     if not failed_album_log:
         return
     log_dir = Path("logs")
@@ -171,9 +212,12 @@ def write_failed_log_to_file():
             f.write(f"{artist}|||{album}\n")
     print(f"\n📝 Appended failed albums to: {log_path}")
 
-# =============== MAIN INTERACTIVE ENTRYPOINT ===============
+# =============== MAIN SCRAPING FUNCTIONS ===============
 
 def scrape_album(sp, artist_name, album_name, album_id):
+    """
+    Download track and album metadata for a specific album.
+    """
     if album_fully_scraped(artist_name, album_name):
         print(f"⏭️  Skipping '{album_name}' by {artist_name} (already scraped)")
         return
@@ -208,6 +252,9 @@ def scrape_album(sp, artist_name, album_name, album_id):
         log_failed_album(artist_name, album_name)
 
 def scrape_full_artist_interactive(sp, artist_name):
+    """
+    Scrape all albums for a given artist.
+    """
     artist_id = get_artist_id(sp, artist_name)
     if not artist_id:
         print(f"❌ Artist not found: {artist_name}")
@@ -242,6 +289,9 @@ def scrape_full_artist_interactive(sp, artist_name):
         scrape_album(sp, artist_name, album["name"], album["id"])
 
 def scrape_single_album_interactive(sp, artist_name, album_name):
+    """
+    Search and scrape metadata for a single specified album.
+    """
     search = with_retry(sp.search, q=f"album:{album_name} artist:{artist_name}", type="album", limit=10)
     items = search["albums"]["items"]
     album_id = None
@@ -260,7 +310,12 @@ def scrape_single_album_interactive(sp, artist_name, album_name):
 
     scrape_album(sp, artist_name, album_name, album_id)
 
+# =============== CLI ENTRYPOINT ===============
+
 def main():
+    """
+    CLI entry point to interactively scrape Spotify metadata by artist or album.
+    """
     print("\n🎧✨ Spotify Artist Scraper: Let's Get Those Tracks ✨🎧\n")
     sp = connect_to_spotify()
 
@@ -270,28 +325,23 @@ def main():
             if artist_name.lower() == 'exit':
                 print("\n👋 See you next time. Stay groovy! 🎵\n")
                 break
-
             if not artist_name:
                 print("⚠️  Please enter a valid artist name.\n")
                 continue
 
             print(f"\n🔍 Searching Spotify for: '{artist_name}'...")
-            print("   ⏳ Scraping metadata...\n")
 
             mode = input("🎯 Choose mode: (A) Full artist or (B) Single album [A/B]: ").strip().upper()
             if mode == 'A':
                 scrape_full_artist_interactive(sp, artist_name)
-                print(f"   ✅ Done scraping: '{artist_name}'\n" + "-" * 60 + "\n")
             elif mode == 'B':
                 album_name = input("💿 Enter the album name: ").strip()
                 if album_name:
                     scrape_single_album_interactive(sp, artist_name, album_name)
-                    print(f"   ✅ Done scraping album: '{album_name}' by '{artist_name}'\n" + "-" * 60 + "\n")
                 else:
                     print("⚠️  Please enter a valid album name.\n")
             else:
                 print("⚠️  Invalid option. Please enter A or B.\n")
-
         except Exception as e:
             print(f"\n❌ An error occurred while processing '{artist_name}': {e}\n")
             sys.exit(1)
