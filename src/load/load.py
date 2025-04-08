@@ -1,14 +1,19 @@
 import os
 import pandas as pd
 import numpy as np
-from pathlib import Path
 import psycopg2
+from datetime import datetime
+from pathlib import Path
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
+from typing import Optional, List, Tuple, Dict, Any
 
-# === CONFIGURATION ===
-# Load environment variables from .env file for DB credentials
+# =======================
+# === CONFIGURATION  ===
+# =======================
+
 load_dotenv(Path(".env"))
+
 DB_PARAMS = {
     "dbname": os.getenv("POSTGRES_DB"),
     "user": os.getenv("POSTGRES_USER"),
@@ -16,14 +21,15 @@ DB_PARAMS = {
     "host": os.getenv("POSTGRES_HOST", "localhost"),
     "port": os.getenv("POSTGRES_PORT", 5432),
 }
+
 PROCESSED_DIR = Path("processed")
 
-# === UTILS ===
+# =======================
+# === UTILITY METHODS ===
+# =======================
 
-def to_python_type(val):
-    """
-    Convert NumPy data types to native Python types for DB insertion.
-    """
+def to_python_type(val: Any) -> Any:
+    """Convert NumPy types to native Python types for DB insertion."""
     if pd.isna(val):
         return None
     if isinstance(val, (np.integer, np.int64)):
@@ -34,26 +40,24 @@ def to_python_type(val):
         return bool(val)
     return val
 
-# === DATABASE CONNECTION ===
+def is_valid_album_name(name: str) -> bool:
+    """Check if album name should be included based on keywords."""
+    excluded_keywords = ["deluxe", "live"]
+    return not any(kw in name.lower() for kw in excluded_keywords)
 
-def connect_db():
-    """
-    Establish a connection to the PostgreSQL database using credentials from .env.
-    """
+# ============================
+# === DATABASE CONNECTION ===
+# ============================
+
+def connect_db() -> psycopg2.extensions.connection:
+    """Establish connection with PostgreSQL using credentials from .env."""
     return psycopg2.connect(**DB_PARAMS)
 
-def create_tables(cursor):
-    """
-    Create all required tables in PostgreSQL if they don't already exist.
-    Includes:
-    - artists
-    - albums
-    - tracks
-    - lyrics
-    - word_frequencies_track
-    - word_frequencies_album
-    """
-    cursor.execute("""
+def create_tables(cursor: psycopg2.extensions.cursor) -> None:
+    """Create all required PostgreSQL tables if they do not exist."""
+    table_definitions = [
+        # Artists
+        """
         CREATE TABLE IF NOT EXISTS artists (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
@@ -65,28 +69,41 @@ def create_tables(cursor):
             genres TEXT,
             instruments TEXT,
             vocal_type TEXT,
+            popularity INTEGER,
+            followers BIGINT,
+            image_url TEXT,
             UNIQUE (name, birth_date)
         );
+        """,
+        # Albums
+        """
         CREATE TABLE IF NOT EXISTS albums (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
-            artist_id INTEGER REFERENCES artists(id),
+            artist_id INTEGER REFERENCES artists(id) ON DELETE CASCADE,
             release_date DATE,
             popularity INTEGER,
+            image_url TEXT,
             UNIQUE (name, artist_id)
         );
+        """,
+        # Tracks
+        """
         CREATE TABLE IF NOT EXISTS tracks (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
-            album_id INTEGER REFERENCES albums(id),
+            album_id INTEGER REFERENCES albums(id) ON DELETE CASCADE,
             track_number INTEGER,
             duration_ms INTEGER,
             explicit BOOLEAN,
             popularity INTEGER,
             UNIQUE (name, album_id)
         );
+        """,
+        # Lyrics
+        """
         CREATE TABLE IF NOT EXISTS lyrics (
-            track_id INTEGER PRIMARY KEY REFERENCES tracks(id),
+            track_id INTEGER PRIMARY KEY REFERENCES tracks(id) ON DELETE CASCADE,
             text TEXT,
             readability_score REAL,
             sentiment_score REAL,
@@ -95,35 +112,41 @@ def create_tables(cursor):
             char_count INTEGER,
             lexical_density REAL
         );
+        """,
+        # Word frequencies (track)
+        """
         CREATE TABLE IF NOT EXISTS word_frequencies_track (
-            track_id INTEGER REFERENCES tracks(id),
-            artist TEXT,
-            album TEXT,
-            track_name TEXT,
-            word TEXT,
-            count INTEGER,
-            UNIQUE (track_id, word)
+            track_id INTEGER REFERENCES tracks(id) ON DELETE CASCADE,
+            word TEXT NOT NULL,
+            count INTEGER NOT NULL,
+            PRIMARY KEY (track_id, word)
         );
+        """,
+        # Word frequencies (album)
+        """
         CREATE TABLE IF NOT EXISTS word_frequencies_album (
-            artist TEXT,
-            album TEXT,
-            word TEXT,
-            count INTEGER,
-            UNIQUE (artist, album, word)
+            album_id INTEGER REFERENCES albums(id) ON DELETE CASCADE,
+            word TEXT NOT NULL,
+            count INTEGER NOT NULL,
+            PRIMARY KEY (album_id, word)
         );
-    """)
+        """
+    ]
+    for statement in table_definitions:
+        cursor.execute(statement)
 
+# ====================
 # === CSV PARSERS ===
+# ====================
 
-def parse_artist_csv(path: Path) -> dict:
-    """
-    Parse artist-level metadata from merged CSV.
+def parse_artist_csv(path: Path) -> Dict[str, Any]:
+    """Parse merged metadata for a single artist.
 
     Args:
-        path (Path): Path to the merged metadata CSV.
+        path (Path): Path to artist metadata CSV.
 
     Returns:
-        dict: Dictionary with artist metadata.
+        Dict[str, Any]: Dictionary with artist metadata.
     """
     row = pd.read_csv(path).iloc[0]
     return {
@@ -131,79 +154,83 @@ def parse_artist_csv(path: Path) -> dict:
         "birth_name": row.get("BirthName"),
         "birth_date": row.get("DateOfBirth"),
         "birth_place": row.get("PlaceOfBirth"),
-        "country": row.get("CountryOfCitizenship"),
+        "country": str(row.get("CountryOfCitizenship", "")).strip(),
         "active_years": row.get("WorkPeriodStart"),
-        "genres": ", ".join(filter(None, [str(row.get("GenresWikidata", "")), str(row.get("GenresSpotify", ""))])),
+        "genres": ", ".join(filter(None, [
+            str(row.get("GenresWikidata", "")).strip(),
+            str(row.get("GenresSpotify", "")).strip()
+        ])),
         "instruments": row.get("Instruments"),
         "vocal_type": row.get("VoiceType"),
+        "popularity": row.get("Popularity"),
+        "followers": row.get("Followers"),
+        "image_url": row.get("ImageURL"),
     }
 
-def parse_album_csv(path: Path):
-    """
-    Parse track-level metadata for an album from its final CSV file.
+def parse_album_csv(path: Path) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    """Parse a processed album CSV with track and lyric information.
 
     Args:
-        path (Path): Path to the album's transformed CSV.
+        path (Path): Path to album-level CSV.
 
     Returns:
-        tuple: (album metadata dict, list of tracks with optional lyrics)
+        Tuple: Album metadata and list of tracks with optional lyrics.
     """
-    df = pd.read_csv(path)
-    df.fillna("", inplace=True)
+    df = pd.read_csv(path).fillna("")
     album = df.iloc[0]
     album_data = {
         "name": album["AlbumName"],
         "release_date": album["ReleaseDateAlbum"],
         "popularity": album["AlbumPopularity"],
+        "image_url": album.get("ImageURL", "")
     }
-    tracks = []
-    for i, row in df.iterrows():
-        tracks.append({
-            "name": row["SongName"],
-            "track_number": i + 1,
-            "duration_ms": row["DurationMs"],
-            "explicit": row["Explicit"],
-            "popularity": row["SongPopularity"],
-            "lyrics": row.get("Lyrics", ""),
-        })
+    tracks = [{
+        "name": row["SongName"],
+        "track_number": i + 1,
+        "duration_ms": row["DurationMs"],
+        "explicit": row["Explicit"],
+        "popularity": row["SongPopularity"],
+        "lyrics": row.get("Lyrics", "")
+    } for i, row in df.iterrows()]
     return album_data, tracks
 
-# === DATABASE INSERTS ===
+# ===========================
+# === DATABASE INSERTION ===
+# ===========================
 
-def insert_artist(cursor, artist):
-    """
-    Insert artist record into the artists table.
-    """
+def insert_artist(cursor, artist: Dict[str, Any]) -> Optional[int]:
     cursor.execute("""
-        INSERT INTO artists (name, birth_name, birth_date, birth_place, country,
-        active_years, genres, instruments, vocal_type)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        INSERT INTO artists (
+            name, birth_name, birth_date, birth_place, country,
+            active_years, genres, instruments, vocal_type,
+            popularity, followers, image_url
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (name, birth_date) DO NOTHING RETURNING id;
-    """, tuple(to_python_type(artist[k]) for k in artist))
+    """, tuple(to_python_type(artist[k]) for k in [
+        "name", "birth_name", "birth_date", "birth_place", "country",
+        "active_years", "genres", "instruments", "vocal_type",
+        "popularity", "followers", "image_url"
+    ]))
     result = cursor.fetchone()
     return result[0] if result else None
 
-def insert_album(cursor, album, artist_id):
-    """
-    Insert album record into the albums table.
-    """
+def insert_album(cursor, album: Dict[str, Any], artist_id: int) -> Optional[int]:
     cursor.execute("""
-        INSERT INTO albums (name, artist_id, release_date, popularity)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO albums (name, artist_id, release_date, popularity, image_url)
+        VALUES (%s, %s, %s, %s, %s)
         ON CONFLICT (name, artist_id) DO NOTHING RETURNING id;
     """, (
         to_python_type(album["name"]),
         to_python_type(artist_id),
         to_python_type(album["release_date"]),
-        to_python_type(album["popularity"])
+        to_python_type(album["popularity"]),
+        to_python_type(album["image_url"])
     ))
     result = cursor.fetchone()
     return result[0] if result else None
 
-def insert_tracks(cursor, tracks, album_id):
-    """
-    Insert multiple track records into the tracks table.
-    """
+def insert_tracks(cursor, tracks: List[Dict[str, Any]], album_id: int) -> None:
     values = [(
         to_python_type(t["name"]),
         to_python_type(album_id),
@@ -219,17 +246,11 @@ def insert_tracks(cursor, tracks, album_id):
         ON CONFLICT (name, album_id) DO NOTHING;
     """, values)
 
-def get_track_name_to_id(cursor, album_id):
-    """
-    Map track names to their corresponding IDs for a given album.
-    """
-    cursor.execute("SELECT id, name FROM tracks WHERE album_id = %s;", (album_id,))
-    return {name: track_id for track_id, name in cursor.fetchall()}
+def get_track_name_to_id(cursor, album_id: int) -> Dict[str, int]:
+    cursor.execute("SELECT id, name FROM tracks WHERE album_id = %s", (album_id,))
+    return {name: tid for tid, name in cursor.fetchall()}
 
-def insert_lyrics(cursor, tracks, track_name_to_id):
-    """
-    Insert lyrics for each track into the lyrics table.
-    """
+def insert_lyrics(cursor, tracks: List[Dict[str, Any]], track_name_to_id: Dict[str, int]) -> None:
     for t in tracks:
         track_id = track_name_to_id.get(t["name"])
         if not track_id:
@@ -241,69 +262,74 @@ def insert_lyrics(cursor, tracks, track_name_to_id):
             ON CONFLICT (track_id) DO NOTHING;
         """, (track_id, to_python_type(t["lyrics"])))
 
-# === MAIN FUNCTION ===
+# ====================
+# === MAIN ROUTINE ===
+# ====================
 
-def main():
-    """
-    CLI for loading processed artist and album data into PostgreSQL.
-    Iteratively prompts the user for artist names and loads all albums and lyrics found.
-    """
+def main() -> None:
+    """CLI to load cleaned data into PostgreSQL from 'processed' directory."""
     conn = connect_db()
     cursor = conn.cursor()
+    cursor.execute("SET search_path TO public;")
     create_tables(cursor)
     conn.commit()
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = Path(f"logs/skipped_albums_{timestamp}.log")
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_file = open(log_path, "w", encoding="utf-8")
 
     print("\n🚀 PostgreSQL Loader (multi-artist mode)")
 
     while True:
-        artist_input = input("\n🎤 Enter artist name to load (or type 'exit' to quit): ").strip()
-        if artist_input.lower() == "exit":
+        artist = input("\n🎤 Enter artist name to load (or type 'exit' to quit): ").strip()
+        if artist.lower() == "exit":
             print("\n👋 Exiting loader. Goodbye!")
             break
 
-        artist_dir = PROCESSED_DIR / artist_input
-        artist_csv = artist_dir / f"{artist_input}_merged_metadata.csv"
+        artist_dir = PROCESSED_DIR / artist
+        artist_csv = artist_dir / f"{artist}_merged_metadata.csv"
         if not artist_csv.exists():
-            print(f"⚠️ No metadata for: {artist_input}")
+            print(f"⚠️ No metadata for: {artist}")
             continue
 
-        print(f"\n🎤 Processing artist: {artist_input}")
         artist_data = parse_artist_csv(artist_csv)
         artist_id = insert_artist(cursor, artist_data)
         if not artist_id:
             cursor.execute("SELECT id FROM artists WHERE name = %s", (to_python_type(artist_data["name"]),))
-            res = cursor.fetchone()
-            artist_id = res[0] if res else None
+            result = cursor.fetchone()
+            artist_id = result[0] if result else None
 
         if not artist_id:
-            print("❌ Could not insert or retrieve the artist ID.")
+            print("❌ Could not insert or retrieve artist ID.")
             continue
 
         for album_dir in artist_dir.iterdir():
-            if not album_dir.is_dir():
+            if not album_dir.is_dir() or not is_valid_album_name(album_dir.name):
+                log_file.write(f"{artist}/{album_dir.name}\n")
                 continue
+
             for file in album_dir.glob("*_final.csv"):
-                print(f"\n   💿 Album: {album_dir.name}")
-                album_data, tracks_data = parse_album_csv(file)
+                album_data, tracks = parse_album_csv(file)
                 album_id = insert_album(cursor, album_data, artist_id)
-                if not album_id:
-                    cursor.execute(
-                        "SELECT id FROM albums WHERE name = %s AND artist_id = %s",
-                        (to_python_type(str(album_data["name"])), to_python_type(artist_id))
-                    )
-                    res = cursor.fetchone()
-                    album_id = res[0] if res else None
 
                 if not album_id:
-                    print("❌ Could not insert or retrieve the album ID.")
+                    cursor.execute("SELECT id FROM albums WHERE name = %s AND artist_id = %s", (
+                        to_python_type(album_data["name"]), to_python_type(artist_id)))
+                    result = cursor.fetchone()
+                    album_id = result[0] if result else None
+
+                if not album_id:
+                    print("❌ Could not insert or retrieve album ID.")
                     continue
 
-                insert_tracks(cursor, tracks_data, album_id)
-                track_id_map = get_track_name_to_id(cursor, album_id)
-                insert_lyrics(cursor, tracks_data, track_id_map)
+                insert_tracks(cursor, tracks, album_id)
+                track_ids = get_track_name_to_id(cursor, album_id)
+                insert_lyrics(cursor, tracks, track_ids)
                 conn.commit()
 
     cursor.close()
+    log_file.close()
     conn.close()
     print("\n✅ Load complete.")
 

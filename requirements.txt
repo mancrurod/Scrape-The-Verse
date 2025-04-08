@@ -1,61 +1,82 @@
-asttokens==3.0.0
-beautifulsoup4==4.13.3
-certifi==2025.1.31
-charset-normalizer==3.4.1
-click==8.1.8
-cmudict==1.0.32
-colorama==0.4.6
-comm==0.2.2
-debugpy==1.8.12
-decorator==5.1.1
-executing==2.2.0
-greenlet==3.1.1
-idna==3.10
-importlib_metadata==8.6.1
-importlib_resources==6.5.2
-ipykernel==6.29.5
-ipython==8.32.0
-jedi==0.19.2
-joblib==1.4.2
-jupyter_client==8.6.3
-jupyter_core==5.7.2
-lyricsgenius==3.3.1
-matplotlib-inline==0.1.7
-nest-asyncio==1.6.0
-nltk==3.9.1
-numpy==2.2.4
-packaging @ file:///C:/b/abs_3by6s2fa66/croot/packaging_1734472138782/work
-pandas==2.2.3
-parso==0.8.4
-platformdirs==4.3.6
-prompt_toolkit==3.0.50
-psutil==6.1.1
-psycopg2-binary==2.9.10
-pure_eval==0.2.3
-Pygments==2.19.1
-pyphen==0.17.2
-python-dateutil @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/python-dateutil_1729038406576/work
+# Core
 python-dotenv==1.1.0
-pytz==2025.2
-pywin32==308
-pyzmq==26.2.1
-redis==5.2.1
-regex==2024.11.6
+pandas==2.2.3
+numpy==1.24.4
 requests==2.32.3
-setuptools==75.8.0
-six @ file:///tmp/build/80754af9/six_1644875935023/work
-soupsieve==2.6
-spotipy==2.25.1
-SQLAlchemy==2.0.40
-stack-data==0.6.3
-textstat==0.7.5
-tornado==6.4.2
 tqdm==4.67.1
-traitlets==5.14.3
-typing_extensions==4.13.0
-tzdata==2025.2
+python-dateutil==2.9.0.post0
 urllib3==2.3.0
-wcwidth==0.2.13
-wheel==0.45.1
+packaging==23.2
+
+# Spotify + Genius APIs
+spotipy==2.25.1
+lyricsgenius==3.3.1
 Wikipedia-API==0.8.1
-zipp==3.21.0
+
+# NLP: spaCy, NLTK, Transformers
+spacy==3.7.4
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+nltk==3.9.1
+transformers==4.51.0
+huggingface-hub==0.30.1
+textstat==0.7.5
+
+# spaCy deps
+blis==0.7.11
+catalogue==2.0.10
+confection==0.1.5
+cymem==2.0.7
+langcodes==3.5.0
+preshed==3.0.8
+srsly==2.5.1
+thinc==8.2.2
+wasabi==1.1.3
+spacy-legacy==3.0.12
+spacy-loggers==1.0.5
+weasel==0.3.4
+
+# NLTK extras
+cmudict==1.0.32
+regex==2024.11.6
+pyphen==0.17.2
+
+# PostgreSQL
+psycopg2-binary==2.9.10
+
+# Utility
+fsspec==2025.3.2
+cloudpathlib==0.16.0
+joblib==1.4.2
+PyYAML==6.0.2
+
+# Jupyter (optional, dev)
+ipykernel==6.29.4
+ipython==8.32.0
+jupyter_client==8.6.1
+jupyter_core==5.7.2
+
+# Typing / Validation
+pydantic==2.11.2
+annotated-types==0.7.0
+typing_extensions==4.13.0
+typing-inspection==0.4.0
+pydantic_core==2.33.1
+
+# Console / CLI
+click==8.1.8
+colorama==0.4.6
+prompt_toolkit==3.0.50
+
+# Logging / Debug
+traitlets==5.14.3
+stack-data==0.6.3
+pure_eval==0.2.3
+executing==2.2.0
+debugpy==1.8.12
+
+# Others
+matplotlib-inline==0.1.7
+soupsieve==2.6
+beautifulsoup4==4.13.3
+sympy==1.13.1
+networkx==3.4.2

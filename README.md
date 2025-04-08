@@ -13,30 +13,36 @@
 
 ## 🚀 What is this?
 
-**Scrape The Verse** is a modular ETL pipeline built in Python to scrape and analyze:
+**Scrape The Verse** is a modular ETL + NLP pipeline built in Python to scrape and analyze:
 
 - 🎧 Spotify metadata (artists, albums, songs)
 - 📝 Genius lyrics (by album)
 - 🧠 Wikidata metadata (biographical and artistic traits)
 
-...with one literary mission:  
-Build a clean, analyzable dataset to explore **songwriting quality** through the lens of literary merit.
+With one literary mission:  
+**Build a clean, analyzable dataset to explore songwriting quality through the lens of literary merit.**
 
 ---
 
 ## 🧠 Project Status
 
-**Stable and modular** – The project is fully functional and organized as a clean ETL pipeline with plug-and-play components.
+**Stable and modular** — the project is fully functional and structured as a clear ETL pipeline with reusable components and database integration.
 
 ### ✅ Core Features
 
-- Spotify, Genius & Wikidata scrapers  
-- Lyrics + metadata merging and transformation  
-- Song-level stats: readability, sentiment, lexical density  
-- Album- and track-level word frequency tables (for word clouds!)  
-- PostgreSQL loader with relational schema  
-- Fully interactive CLI for each pipeline step  
-- Batch processing & log tracking for errors or missing data
+- Modular scrapers for Spotify, Genius, and Wikidata
+- Lyrics + metadata transformation and merging
+- Track-level NLP analysis:
+  - Flesch readability
+  - Sentiment (VADER)
+  - Lexical density
+  - Word/line/character counts
+- Word frequency tables for tracks and albums
+- PostgreSQL loader with relational schema + data integrity
+- Robust dependency validation (`nltk`, `spaCy`, etc.)
+- Batch logging of missing or matched lyrics
+- Fully interactive CLI for all pipeline stages
+- Clean, testable, documented and type-annotated Python code (SOLID-ready)
 
 ---
 
@@ -54,10 +60,10 @@ src/
 │   ├── genius_transformation.py
 │   ├── spotify_transformation.py
 │   └── wikidata_transformation.py
-├── process/
+├── processing/
 │   └── process.py
 ├── load/
-│   └── load.py
+│   ├── load.py
 
 raw/
 ├── GENIUS/
@@ -73,20 +79,22 @@ processed/
     └── <album>_final.csv
 
 logs/
+db/
+└── create_schema.sql
 ```
 
 ---
 
 ## ⚙️ Setup
 
-1. Clone the repo
+### 1. Clone the repo
 
 ```bash
 git clone https://github.com/<your-username>/Scrape-The-Verse.git
 cd Scrape-The-Verse
 ```
 
-2. Create your `.env` file:
+### 2. Create your `.env` file
 
 ```dotenv
 SPOTIPY_CLIENT_ID=your_spotify_id
@@ -100,22 +108,55 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 ```
 
-3. Install dependencies:
+### 3. Create and activate the Conda environment
 
 ```bash
-# Using pip
+conda create -n scraptheverse python=3.10
+conda activate scraptheverse
 pip install -r requirements.txt
-
-# Or using conda
-conda env create -f environment.yml
-conda activate scrape_the_verse
+python -m spacy download en_core_web_sm
 ```
 
 ---
 
-## ▶️ How to Run the Pipeline
+## 🧪 Initialize the Database
 
-You can run the full flow manually via:
+Before loading data, create the PostgreSQL schema:
+
+```bash
+psql -U <your_user> -d <your_database> -f db/create_schema.sql
+```
+
+Or run it directly in DBeaver.
+
+---
+
+## ▶️ Run the Pipeline
+
+Run each step of the pipeline via CLI:
+
+```bash
+# Step 1: Scrape data
+python src/extraction/spotify_extraction.py
+python src/extraction/genius_extraction.py
+python src/extraction/wikidata_extraction.py
+
+# Step 2: Clean & transform
+python src/transformation/spotify_transformation.py
+python src/transformation/genius_transformation.py
+python src/transformation/wikidata_transformation.py
+
+# Step 3: Merge lyrics with tracks
+python src/processing/process.py
+
+# Step 4: Load to PostgreSQL
+python src/load/load.py
+
+# Step 5: Analyze lyrics
+python src/analysis/analyze_lyrics.py
+```
+
+You can run every step at once, too.
 
 ```bash
 python main.py
@@ -123,7 +164,7 @@ python main.py
 
 ---
 
-## 📊 Database Schema
+## 📊 Database Schema Overview
 
 Includes:
 
@@ -133,6 +174,8 @@ Includes:
 - `lyrics`: raw text + readability, sentiment, lexical stats  
 - `word_frequencies_track`: for song-level word clouds  
 - `word_frequencies_album`: for album-level word clouds
+
+Defined in [`db/create_schema.sql`](db/create_schema.sql)
 
 ---
 
@@ -147,7 +190,7 @@ Includes:
 
 ## 🤝 Contributing
 
-Pull requests welcome – especially from Swifties who know SQL.  
+Pull requests welcome — especially from Swifties who know SQL.  
 Just… please don’t fight about *Folklore* vs *1989* in the issues.
 
 ---

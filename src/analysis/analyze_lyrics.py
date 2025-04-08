@@ -1,32 +1,25 @@
 import os
+import string
+from collections import Counter, defaultdict
+from typing import Tuple, Optional, Dict
+
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from textstat import flesch_reading_ease
+import spacy
+
 import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
 from dotenv import load_dotenv
-from textstat import flesch_reading_ease
-from nltk.sentiment import SentimentIntensityAnalyzer
-from collections import Counter, defaultdict
-import nltk
-import spacy
-import string
 
-# === SETUP ===
+# ========================
+# === ENVIRONMENT SETUP ===
+# ========================
+
 load_dotenv()
 
-# Download required NLTK resources
-nltk.download('vader_lexicon')
-nltk.download('punkt')
-nltk.download('stopwords')
-
-# Initialize tools for analysis
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-
-sia = SentimentIntensityAnalyzer()
-nlp = spacy.load("en_core_web_sm")
-stop_words = set(stopwords.words('english'))
-punctuation = set(string.punctuation)
-
-# Load database connection parameters from .env
 DB_PARAMS = {
     "dbname": os.getenv("POSTGRES_DB"),
     "user": os.getenv("POSTGRES_USER"),
@@ -35,78 +28,102 @@ DB_PARAMS = {
     "port": os.getenv("POSTGRES_PORT", 5432),
 }
 
-# === ANALYSIS FUNCTIONS ===
+# Ensure NLTK resources
 
-def compute_readability(text):
-    """
-    Compute Flesch Reading Ease score for a given text.
-    Returns None if computation fails.
-    """
+def ensure_nltk_resource(resource_path: str, download_name: Optional[str] = None) -> None:
+    try:
+        nltk.data.find(resource_path)
+    except LookupError:
+        name = download_name or resource_path.split("/")[-1]
+        print(f"🔄 Downloading NLTK resource: {name}")
+        nltk.download(name)
+        print(f"✅ Downloaded: {name}")
+
+for res in ["sentiment/vader_lexicon", "tokenizers/punkt", "corpora/stopwords"]:
+    ensure_nltk_resource(res)
+
+sia = SentimentIntensityAnalyzer()
+stop_words = set(stopwords.words("english"))
+
+# Ensure spaCy model
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("🔄 Downloading spaCy model 'en_core_web_sm'")
+    from spacy.cli import download
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
+    print("✅ spaCy model loaded")
+
+punctuation = set(string.punctuation)
+
+# ============================
+# === TEXT ANALYSIS UTILS ===
+# ============================
+
+def compute_readability(text: str) -> Optional[float]:
     try:
         return flesch_reading_ease(text)
     except:
         return None
 
-def compute_sentiment(text):
-    """
-    Compute compound sentiment score using VADER.
-    Returns None if computation fails.
-    """
+def compute_sentiment(text: str) -> Optional[float]:
     try:
-        return sia.polarity_scores(text)['compound']
+        return sia.polarity_scores(text)["compound"]
     except:
         return None
 
-def compute_basic_stats(text):
-    """
-    Compute basic statistics: word count, line count, character count.
-    """
+def compute_basic_stats(text: str) -> Tuple[int, int, int]:
     words = len(text.split())
-    lines = text.count('\n') + 1
+    lines = text.count("\n") + 1
     chars = len(text)
     return words, lines, chars
 
-def compute_lexical_density(text):
-    """
-    Compute lexical density (ratio of content words to total words) using spaCy.
-    Returns None if analysis fails.
-    """
+def compute_lexical_density(text: str) -> Optional[float]:
     try:
         doc = nlp(text)
-        content_words = [token for token in doc if token.pos_ in ['NOUN', 'VERB', 'ADJ', 'ADV']]
-        return len(content_words) / max(1, len(doc))
+        content = [t for t in doc if t.pos_ in ["NOUN", "VERB", "ADJ", "ADV"]]
+        return len(content) / max(1, len(doc))
     except:
         return None
 
-def tokenize_and_count(text):
-    """
-    Tokenize the text, remove stopwords and punctuation,
-    and return a Counter with word frequencies.
-    """
+def tokenize_and_count(text: str) -> Counter:
     tokens = word_tokenize(text.lower())
     clean_tokens = [t for t in tokens if t.isalpha() and t not in stop_words and t not in punctuation]
     return Counter(clean_tokens)
 
-# === MAIN WORKFLOW ===
+# ============================
+# === DB RESOLUTION UTILS ===
+# ============================
 
-def main():
+def get_artist_id(cursor, artist_name: str) -> Optional[int]:
+    cursor.execute("SELECT id FROM artists WHERE name = %s", (artist_name,))
+    result = cursor.fetchone()
+    return result["id"] if result else None
+
+def get_album_id(cursor, album_name: str, artist_id: int) -> Optional[int]:
+    cursor.execute("SELECT id FROM albums WHERE name = %s AND artist_id = %s", (album_name, artist_id))
+    result = cursor.fetchone()
+    return result["id"] if result else None
+
+# ===========================
+# === MAIN ANALYSIS FLOW ===
+# ===========================
+
+def main() -> None:
     """
-    Analyze song lyrics stored in the database by computing:
-    - Readability
-    - Sentiment
-    - Basic stats (word/line/char count)
+    Main CLI entry point to analyze lyrics:
+    - Flesch readability
+    - Sentiment (VADER)
+    - Basic stats: words, lines, chars
     - Lexical density
-
-    Then generate:
-    - Word frequency table per track
-    - Word frequency table per album
+    - Word frequencies (track/album level)
     """
-    print("\n📊 Starting lyrics analysis (readability + sentiment + word frequencies)...\n")
-
+    print("\n📊 Starting lyrics analysis...\n")
     conn = psycopg2.connect(**DB_PARAMS)
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    # === STEP 1: Update missing per-track statistics ===
+    # Step 1: Update lyrics table with stats
     cursor.execute("""
         SELECT track_id, text FROM lyrics
         WHERE readability_score IS NULL
@@ -122,13 +139,11 @@ def main():
         track_id = row['track_id']
         text = row['text'] or ""
 
-        # Compute all stats
         readability = compute_readability(text)
         sentiment = compute_sentiment(text)
         word_count, line_count, char_count = compute_basic_stats(text)
         lexical_density = compute_lexical_density(text)
 
-        # Update database
         cursor.execute("""
             UPDATE lyrics
             SET readability_score = %s,
@@ -139,23 +154,17 @@ def main():
                 lexical_density = %s
             WHERE track_id = %s;
         """, (
-            readability,
-            sentiment,
-            word_count,
-            line_count,
-            char_count,
-            lexical_density,
-            track_id
+            readability, sentiment, word_count, line_count,
+            char_count, lexical_density, track_id
         ))
 
         print(f"✅ Track {track_id} | Words: {word_count} | Lexical Density: {lexical_density:.2f}")
 
     conn.commit()
 
-    # === STEP 2: Generate word frequencies ===
+    # Step 2: Generate word frequencies
     print("\n🧠 Generating word frequencies...")
 
-    # Get all lyrics with corresponding track, album, and artist metadata
     cursor.execute("""
         SELECT
             l.track_id, l.text, t.name AS track_name,
@@ -168,50 +177,59 @@ def main():
     """)
     all_data = cursor.fetchall()
 
-    # Track-level word frequencies
     track_word_rows = []
-    # Album-level word aggregations
-    album_word_counts = defaultdict(Counter)
+    album_word_counts: Dict[Tuple[str, str], Counter] = defaultdict(Counter)
 
     for row in all_data:
         text = row["text"] or ""
         tokens = tokenize_and_count(text)
 
         for word, count in tokens.items():
-            # Track-level
-            track_word_rows.append((
-                row["track_id"], row["artist"], row["album"], row["track_name"], word, count
-            ))
-            # Accumulate per album
-            album_word_counts[(row["artist"], row["album"])][word] += count
+            track_word_rows.append((row["track_id"], word, count))
+            album_key = (row["artist"], row["album"])
+            album_word_counts[album_key][word] += count
 
-    # Clear old frequencies before inserting updated ones
+    # Reset previous word frequencies
     cursor.execute("DELETE FROM word_frequencies_track;")
     cursor.execute("DELETE FROM word_frequencies_album;")
 
-    # Insert track-level word frequencies
-    execute_values(cursor, """
-        INSERT INTO word_frequencies_track (track_id, artist, album, track_name, word, count)
-        VALUES %s;
-    """, track_word_rows)
+    # Insert per-track word counts
+    if track_word_rows:
+        execute_values(cursor, """
+            INSERT INTO word_frequencies_track (track_id, word, count)
+            VALUES %s
+            ON CONFLICT (track_id, word) DO UPDATE SET count = EXCLUDED.count;
+        """, track_word_rows)
+        print(f"✅ Inserted {len(track_word_rows)} track-level word frequencies.")
+    else:
+        print("⚠️ No track-level word frequencies generated.")
 
-    # Insert album-level word frequencies
-    album_word_rows = [
-        (artist, album, word, count)
-        for (artist, album), counts in album_word_counts.items()
-        for word, count in counts.items()
-    ]
+    # Insert per-album word counts
+    values_album = []
+    for (artist, album), counter in album_word_counts.items():
+        artist_id = get_artist_id(cursor, artist)
+        album_id = get_album_id(cursor, album, artist_id)
+        if artist_id is None or album_id is None:
+            print(f"⚠️ Could not resolve ID for {artist} - {album}. Skipping.")
+            continue
+        for word, count in counter.items():
+            values_album.append((album_id, word, count))
 
-    execute_values(cursor, """
-        INSERT INTO word_frequencies_album (artist, album, word, count)
-        VALUES %s;
-    """, album_word_rows)
+    if values_album:
+        execute_values(cursor, """
+            INSERT INTO word_frequencies_album (album_id, word, count)
+            VALUES %s
+            ON CONFLICT (album_id, word) DO UPDATE SET count = EXCLUDED.count;
+        """, values_album)
+        print(f"✅ Inserted {len(values_album)} album-level word frequencies.")
+    else:
+        print("⚠️ No album-level word frequencies generated.")
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    print("\n✅ Lyrics analysis and word frequencies completed.")
+    print("\n✅ Lyrics analysis complete.")
 
 if __name__ == "__main__":
     main()

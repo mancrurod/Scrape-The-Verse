@@ -25,3 +25,6 @@ transformations/
 
 # Processed files
 processed/
+
+# Patches
+patch_album_metadata.py
