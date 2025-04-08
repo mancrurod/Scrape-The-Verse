@@ -9,7 +9,6 @@
 ![Built by Swifties](https://img.shields.io/badge/built%20by-Swifties-ec87c0?style=flat-square&logo=taylor-swift)
 ![Inspired by Dylan](https://img.shields.io/badge/inspired%20by-Dylan-6f4e37?style=flat-square&logo=lyrics)
 
-
 *He wrote “Tangled Up in Blue,” she wrote “The Story of Us”—we wrote the code to ask if Swift could follow Dylan to Stockholm.*
 
 > 📚 This project is a full-blown, ETL-powered attempt to answer one brilliant, nerdy, and slightly unhinged question:  
