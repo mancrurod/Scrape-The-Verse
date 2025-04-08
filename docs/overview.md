@@ -1,60 +1,82 @@
 # 🧠 Project Overview
 
-This page explains the architecture and logic behind the **Scrape The Verse** ETL pipeline.
+**Scrape The Verse** is a full-featured ETL and NLP pipeline that builds an analyzable dataset of lyrics and metadata for music artists, combining Spotify, Genius, and Wikidata sources.
 
 ---
 
-## 🏗️ Pipeline Architecture
+## 🎯 Goals
 
-```
-Spotify API ─────┐
-                 │
-Genius API ──────┼──► [Extraction] ─► [Transformation] ─► [Processing] ─► [Analysis] ─► [Load to PostgreSQL]
-                 │
-Wikidata API ────┘
-```
-
-Each source has its own extraction and transformation logic. All data is eventually merged and loaded into a relational database.
+- Analyze songwriting quality with NLP and literary metrics
+- Compare artists (e.g. Dylan vs Swift) on structure, vocabulary, sentiment
+- Prepare data for dashboards, machine learning, and visualizations
 
 ---
 
-## 📁 Project Structure
+## 🧱 Architecture
 
 ```
-src/
-├── extraction/       # Scrapers for Spotify, Genius, Wikidata
-├── transformation/   # Cleaning and formatting data
-├── process/          # Match lyrics to tracks
-├── analysis/         # NLP: readability, sentiment, frequency
-├── load/             # PostgreSQL schema and loader
-
-data/
-├── raw/              # Raw downloaded data
-├── transformations/  # Cleaned CSVs
-├── processed/        # Final datasets (lyrics + metadata)
-├── logs/             # Logs of missing or failed items
+[Spotify API] ─┐
+              ├──► [Extract] ─┐
+[Genius API] ──┘             ├──► [Transform] ─┐
+[Wikidata API] ─────────────┘                ├──► [Process Lyrics + Metadata] ─┐
+                                             │                                 │
+                                             └────────► [Load to PostgreSQL] ─► [Analyze]
 ```
 
 ---
 
-## 🧩 Key Concepts
+## 🧩 Components
 
-- **Multi-source integration**: Combines musical, textual, and biographical data
-- **Lyrics mapping**: Matches Genius lyrics to Spotify songs with fuzzy matching
-- **Text analysis**: Measures readability, sentiment, lexical density
-- **Word clouds**: Generates word frequency data by track and album
-- **PostgreSQL schema**: Normalized DB ready for queries and dashboards
+### 🟦 Extraction (`src/extraction`)
+- `spotify_extraction.py`: track + album data
+- `genius_extraction.py`: lyrics by album
+- `wikidata_extraction.py`: biography, genres, instruments
+
+### 🟨 Transformation (`src/transformation`)
+- Cleans + standardizes Spotify and Genius metadata
+- Merges Wikidata + Spotify at the artist level
+
+### 🟩 Processing (`src/processing/process.py`)
+- Fuzzy-match lyrics to tracks
+- Joins lyrics + song metadata
+- Logs missing + matched lyrics
+
+### 🟥 Loading (`src/load/load.py`)
+- PostgreSQL loader with full schema creation
+- Type coercion, conflict resolution
+
+### 🟪 Analysis (`src/analysis/analyze_lyrics.py`)
+- Sentiment (VADER)
+- Readability (Flesch)
+- Lexical density
+- Word/line/character counts
+- Word frequency tables (track + album)
 
 ---
 
-## 📊 Final Output
+## 🧰 Tools & Technologies
 
-Data is stored in a PostgreSQL database, including:
+- **Python 3.10**
+- `spotipy`, `lyricsgenius`, `wikipedia-api`
+- `spaCy`, `nltk`, `textstat`, `transformers`
+- `psycopg2-binary`, PostgreSQL 14+
+- `pandas`, `dotenv`, `tqdm`
 
-- Artist and album metadata
-- Track-level info
-- Clean lyrics
-- Word frequencies
-- Sentiment and readability metrics
+---
 
-Ready to be explored in SQL or Power BI.
+## 🧪 Testing & Reproducibility
+
+- Fully typed functions (`List`, `Dict`, `Optional`, `Tuple`)
+- CLI-driven scripts for all stages
+- Logs written to `/logs/`
+- External dependencies documented in `requirements.txt`
+
+---
+
+## ✅ Output
+
+- Clean CSVs (raw, transformed, processed)
+- Fully populated PostgreSQL database
+- NLP-enriched lyrics table
+- Word frequency tables for NLP or visualization
+

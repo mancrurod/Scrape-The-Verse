@@ -1,5 +1,15 @@
 # 🎶 Scrape The Verse
 
+![Python](https://img.shields.io/badge/python-3.10-blue)
+![ETL Pipeline](https://img.shields.io/badge/etl-complete-brightgreen)
+![NLP Ready](https://img.shields.io/badge/nlp-integrated-orange)
+![Database](https://img.shields.io/badge/database-PostgreSQL-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Made with ❤️](https://img.shields.io/badge/made%20with-%E2%9D%A4-red)
+![Built by Swifties](https://img.shields.io/badge/built%20by-Swifties-ec87c0?style=flat-square&logo=taylor-swift)
+![Inspired by Dylan](https://img.shields.io/badge/inspired%20by-Dylan-6f4e37?style=flat-square&logo=lyrics)
+
+
 *He wrote “Tangled Up in Blue,” she wrote “The Story of Us”—we wrote the code to ask if Swift could follow Dylan to Stockholm.*
 
 > 📚 This project is a full-blown, ETL-powered attempt to answer one brilliant, nerdy, and slightly unhinged question:  

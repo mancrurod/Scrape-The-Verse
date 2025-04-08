@@ -1,39 +1,61 @@
-# ⚙️ Installation Guide
+# 🛠️ Installation Guide
 
-This page explains how to set up **Scrape The Verse** on your local machine.
-
----
-
-## 🧩 Requirements
-
-- Python 3.9+
-- Git
-- (Optional) Conda
-- Spotify Developer Account
-- Genius API Token
-- PostgreSQL (local or Docker)
+To get the project up and running on your machine, follow these steps.
 
 ---
 
-## 📝 Step 1: Clone the repository
+## 📦 Clone the repository
 
 ```bash
-git clone https://github.com/your-username/Scrape-The-Verse.git
+git clone https://github.com/<your-username>/Scrape-The-Verse.git
 cd Scrape-The-Verse
 ```
 
 ---
 
-## 🔐 Step 2: Create a `.env` file
+## 🌱 Create a virtual environment
 
-Inside the project root, create a `.env` file with:
+We recommend using **conda**:
+
+```bash
+conda create -n scraptheverse python=3.10
+conda activate scraptheverse
+```
+
+Or with `venv`:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+---
+
+## 📚 Install dependencies
+
+```bash
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
+
+This installs:
+
+- Spotify + Genius APIs
+- NLP tools (`spaCy`, `nltk`, `textstat`, etc.)
+- PostgreSQL client
+- Transformers (optional)
+
+---
+
+## 🧪 Set up your environment variables
+
+Create a `.env` file in the root directory with the following:
 
 ```dotenv
 SPOTIPY_CLIENT_ID=your_spotify_id
 SPOTIPY_CLIENT_SECRET=your_spotify_secret
 SPOTIPY_REDIRECT_URI=http://localhost:8080
 GENIUS_CLIENT_ACCESS_TOKEN=your_genius_token
-
 POSTGRES_DB=your_database
 POSTGRES_USER=your_user
 POSTGRES_PASSWORD=your_password
@@ -43,31 +65,16 @@ POSTGRES_PORT=5432
 
 ---
 
-## 📦 Step 3: Install dependencies
+## 🧱 Initialize the PostgreSQL schema
 
-**With pip:**
-
-```bash
-pip install -r requirements.txt
-```
-
-**With conda:**
+Run this SQL script:
 
 ```bash
-conda env create -f environment.yml
-conda activate scrape_the_verse
+psql -U <your_user> -d <your_database> -f db/create_schema.sql
 ```
+
+Or use a GUI tool like DBeaver.
 
 ---
 
-## 🛠 Step 4: Set up PostgreSQL with Docker
-
-You can launch a local database using:
-
-```bash
-docker run --name postgres-verse -e POSTGRES_DB=lyrics -e POSTGRES_USER=verse_user -e POSTGRES_PASSWORD=yourpass -p 5432:5432 -d postgres
-```
-
----
-
-You’re now ready to run the ETL pipeline!
+You're now ready to run the ETL pipeline!
