@@ -197,8 +197,6 @@ python main.py
 
 ---
 
----
-
 ## 🎥 Pipeline Demo
 **“We bring receipts — and by that, we mean animated .gifs.”**
 
