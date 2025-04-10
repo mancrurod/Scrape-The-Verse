@@ -2,6 +2,35 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.1.0] - 2025-04-10
+
+### ✨ Highlights
+
+- Enhanced user-facing documentation with demo media and creative branding
+- Fixed extraction bug in Genius pipeline
+- Strengthened identity and readability of the project
+
+### 🚀 New Features
+
+- 📸 Added `docs/gifs/` folder with animated ETL stage demos
+- 🪄 Embedded visual walkthroughs directly in `README.md` using GIFs
+
+### 🛠️ Refactors
+
+- Rewrote `README.md` with Dylan/Swift-themed subtitles for each section
+- Reorganized project badges for clarity and logical grouping
+- Improved structure of "Contributing" and "Credits" sections with clever tone
+
+### 🐛 Fixes
+
+- Fixed issue in `src/extraction/genius_extraction.py` affecting lyric retrieval
+
+### 📚 Documentation
+
+- Added badge for project status (`Status: Stable`)
+- Updated badges layout to follow best practices
+- Extended commit message to reflect visual and functional changes
+
 ---
 
 ## [1.0.0] - 2025-04-08

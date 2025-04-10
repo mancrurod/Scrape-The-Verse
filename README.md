@@ -59,25 +59,30 @@ With one literary mission:
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure  
 **“Organized like a vault track. Documented like ‘Desolation Row.’”**
 
 ```text
 src/
 ├── analysis/
+│   ├── __init__.py
 │   └── analyze_lyrics.py
 ├── extraction/
+│   ├── __init__.py
 │   ├── genius_extraction.py
 │   ├── spotify_extraction.py
 │   └── wikidata_extraction.py
 ├── transformation/
+│   ├── __init__.py
 │   ├── genius_transformation.py
 │   ├── spotify_transformation.py
 │   └── wikidata_transformation.py
-├── processing/
+├── process/
+│   ├── __init__.py
 │   └── process.py
 ├── load/
-│   ├── load.py
+│   ├── __init__.py
+│   └── load.py
 
 raw/
 ├── GENIUS/
@@ -92,9 +97,17 @@ processed/
 └── <artist>/
     └── <album>_final.csv
 
-logs/
+docs/
+├── gifs/
+├── index.md
+├── installation.md
+├── overview.md
+└── usage.md
+
 db/
 └── create_schema.sql
+
+logs/
 ```
 
 ---
