@@ -137,7 +137,7 @@ def get_album_path(artist_name: str, album_name: str) -> Path:
     album_path.mkdir(parents=True, exist_ok=True)
     return album_path
 
-def save_lyrics_to_file(file_path: Path, song_object: lyricsgenius.song.Song) -> None:
+def save_lyrics_to_file(file_path: Path, song_object) -> None:
     """Save lyrics to a text file.
 
     Args:

@@ -1,13 +1,15 @@
 # 🎶 Scrape The Verse
 
 ![Python](https://img.shields.io/badge/python-3.10-blue)
+![Database](https://img.shields.io/badge/database-PostgreSQL-blue)
+![Status](https://img.shields.io/badge/status-stable-brightgreen)
 ![ETL Pipeline](https://img.shields.io/badge/etl-complete-brightgreen)
 ![NLP Ready](https://img.shields.io/badge/nlp-integrated-orange)
-![Database](https://img.shields.io/badge/database-PostgreSQL-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Made with ❤️](https://img.shields.io/badge/made%20with-%E2%9D%A4-red)
-![Built by Swifties](https://img.shields.io/badge/built%20by-Swifties-ec87c0?style=flat-square&logo=taylor-swift)
+![Built by a Swiftie](https://img.shields.io/badge/built%20by-Swifties-ec87c0?style=flat-square&logo=taylor-swift)
 ![Inspired by Dylan](https://img.shields.io/badge/inspired%20by-Dylan-6f4e37?style=flat-square&logo=lyrics)
+
 
 *He wrote “Tangled Up in Blue,” she wrote “The Story of Us”—we wrote the code to ask if Swift could follow Dylan to Stockholm.*
 
@@ -21,6 +23,7 @@
 ---
 
 ## 🚀 What is this?
+**“It’s me, hi — I’m the pipeline, it’s me.”**
 
 **Scrape The Verse** is a modular ETL + NLP pipeline built in Python to scrape and analyze:
 
@@ -34,6 +37,7 @@ With one literary mission:
 ---
 
 ## 🧠 Project Status
+**“The times they are a-changin’ — but this repo’s ready.”**
 
 **Stable and modular** — the project is fully functional and structured as a clear ETL pipeline with reusable components and database integration.
 
@@ -56,6 +60,7 @@ With one literary mission:
 ---
 
 ## 📁 Project Structure
+**“Organized like a vault track. Documented like ‘Desolation Row.’”**
 
 ```text
 src/
@@ -95,6 +100,9 @@ db/
 ---
 
 ## ⚙️ Setup
+**“First you get the access token, then you get the data, then you change the world.”**
+
+From cloning to conda to credentials, it’s all here — just like a deluxe edition rollout.
 
 ### 1. Clone the repo
 
@@ -129,6 +137,8 @@ python -m spacy download en_core_web_sm
 ---
 
 ## 🧪 Initialize the Database
+**“Some PostgreSQL tables, just to keep you company.”**  
+(*Probably* what Taylor says to her ERD diagrams.)
 
 Before loading data, create the PostgreSQL schema:
 
@@ -141,8 +151,9 @@ Or run it directly in DBeaver.
 ---
 
 ## ▶️ Run the Pipeline
+**“From Red to Reputation, one script at a time.”**
 
-Run each step of the pipeline via CLI:
+Whether you're running it track by track or all at once, this pipeline flows smoother than *Blonde on Blonde*.
 
 ```bash
 # Step 1: Scrape data
@@ -156,7 +167,7 @@ python src/transformation/genius_transformation.py
 python src/transformation/wikidata_transformation.py
 
 # Step 3: Merge lyrics with tracks
-python src/processing/process.py
+python src/process/process.py
 
 # Step 4: Load to PostgreSQL
 python src/load/load.py
@@ -173,9 +184,35 @@ python main.py
 
 ---
 
-## 📊 Database Schema Overview
+---
 
-Includes:
+## 🎥 Pipeline Demo
+**“We bring receipts — and by that, we mean animated .gifs.”**
+
+A visual tour from scraping to NLP, because if it’s not in a GIF, did it even happen?
+
+### 🔍 Extraction
+![Extraction](docs/gifs/extraction.gif)
+
+### 🧼 Transformation
+![Transformation](docs/gifs/transformation.gif)
+
+### 🧩 Merging Lyrics with Metadata
+![Merging](docs/gifs/merge.gif)
+
+### 💾 Loading to PostgreSQL
+![Loading](docs/gifs/loading.gif)
+
+### 📈 NLP Analysis
+![Analysis](docs/gifs/analysis.gif)
+
+
+---
+
+## 📊 Database Schema Overview
+**“Structured like a bridge. Normalized like a Dylan verse.”**
+
+Includes everything from `lyrics` to `word_frequencies_album`. No easter eggs, just solid SQL.
 
 - `artists`: identity & biography  
 - `albums`: linked to artist  
@@ -189,6 +226,7 @@ Defined in [`db/create_schema.sql`](db/create_schema.sql)
 ---
 
 ## 💡 Example Use Cases
+**“Use cases that go deeper than Track 5.”**
 
 - Compare **lexical density** of Bob Dylan vs Taylor Swift  
 - Visualize **frequent motifs** (love, time, silence...) by album  
@@ -197,17 +235,36 @@ Defined in [`db/create_schema.sql`](db/create_schema.sql)
 
 ---
 
-## 🤝 Contributing
+## 📊 Power BI Dashboard Demos
+**“If a chart falls in the forest, but it’s not in Power BI, did it really insight?”**
 
-Pull requests welcome — especially from Swifties who know SQL.  
-Just… please don’t fight about *Folklore* vs *1989* in the issues.
+A first look at the visual storytelling behind the metrics. Think *Miss Americana* meets *Don’t Look Back*.
+
+### 🧾 Summary Cards View
+![Summary Cards](docs/gifs/dashboard_overview.gif)
+
+### ✍️ Literary Quality Breakdown
+![Literary Quality](docs/gifs/literary_quality_page.gif)
+
+### ❤️ Emotional Depth & Sentiment
+![Emotional Depth](docs/gifs/emotional_depth_page.gif)
+
+---
+
+## 🤝 Contributing  
+**“Bring your pull requests — and your cardigan.”**
+
+Pull requests are always welcome — especially if you can write a left join with the same finesse as a bridge in *All Too Well (10 Minute Version)*.  
+Just one rule: no *Folklore* vs *1989* wars in the issues. We honor the whole catalog here.
 
 ---
 
 ## ✨ Credits
+**“Built by a Swiftie. Haunted by a Dylan lyric.”**
 
-Built by a language nerd with an overactive playlist.  
-Inspired by literature, lyrics, and one very specific Nobel Prize.
+Created by Manuel Cruz Rodríguez — a language lover with too many browser tabs and a playlist that won’t quit.  
+Born from books, lyrics… and one Nobel Prize nobody saw coming.
 
-> “You’re on your own, kid—but the script runs fine.”  
-> — T. Swift, sort of.
+> “You’re on your own, kid — but this script doesn’t need backup.”  
+> — T. Swift, if she used Git.
+
