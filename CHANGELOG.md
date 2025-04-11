@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.1.2] - 2025-04-11
+
+### 📚 Documentation
+
+- Added a link to the Spanish version of `README.md`
+- Improved project accessibility with multilingual documentation
+
 ## [1.1.1] - 2025-04-11
 
 ### 📚 Documentation

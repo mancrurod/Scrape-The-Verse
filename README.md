@@ -10,10 +10,17 @@
 ![Built by a Swiftie](https://img.shields.io/badge/built%20by-Swifties-ec87c0?style=flat-square&logo=taylor-swift)
 ![Inspired by Dylan](https://img.shields.io/badge/inspired%20by-Dylan-6f4e37?style=flat-square&logo=lyrics)
 
+---
+
+## 🌐 Documentación en español
+
+Si deseas ver la documentación en español, puedes acceder al archivo `README_ES.md` [aquí](./README_ES.md).
+
+---
 
 *He wrote “Tangled Up in Blue,” she wrote “The Story of Us”—we wrote the code to ask if Swift could follow Dylan to Stockholm.*
 
-> 📚 This project is a full-blown, ETL-powered attempt to answer one brilliant, nerdy, and slightly unhinged question:  
+> 📚 This project is a full-blown, ETL-powered attempt to answer one nerdy and slightly unhinged question:  
 > **Can Taylor Swift win the Nobel Prize in Literature?**  
 > (Spoiler: if Bob Dylan did, why not her?)
 
@@ -198,7 +205,7 @@ python main.py
 ---
 
 ## 🎥 Pipeline Demo
-**“We bring receipts — and by that, we mean animated .gifs.”**
+**“We bring receipts — and by that, we mean .gifs.”**
 
 A visual tour from scraping to NLP, because if it’s not in a GIF, did it even happen?
 
@@ -223,7 +230,7 @@ A visual tour from scraping to NLP, because if it’s not in a GIF, did it even 
 ## 📊 Database Schema Overview
 **“Structured like a bridge. Normalized like a Dylan verse.”**
 
-Includes everything from `lyrics` to `word_frequencies_album`. No easter eggs, just solid SQL.
+Includes everything from `lyrics` to `word_frequencies_album`.
 
 - `artists`: identity & biography  
 - `albums`: linked to artist  
@@ -237,7 +244,7 @@ Defined in [`db/create_schema.sql`](db/create_schema.sql)
 ---
 
 ## 💡 Example Use Cases
-**“Use cases that go deeper than Track 5.”**
+**“They go deeper than Track 5.”**
 
 - Compare **lexical density** of Bob Dylan vs Taylor Swift  
 - Visualize **frequent motifs** (love, time, silence...) by album  
