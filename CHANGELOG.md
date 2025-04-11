@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.1.1] - 2025-04-11
+
+### 📚 Documentation
+
+- Added complete and consistent docstrings across all modules
+- Inserted detailed inline comments in Python codebase
+- Clarified function behavior, ETL flow, and NLP logic for contributors
+- Improved developer experience and long-term maintainability
+
 ## [1.1.0] - 2025-04-10
 
 ### ✨ Highlights
