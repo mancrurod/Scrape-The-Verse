@@ -67,22 +67,29 @@ def main() -> None:
     print("\n🧬 Wikidata + Spotify Metadata Merger\n")
 
     while True:
+        # Prompt the user to enter an artist name or exit
         artist_name = input("🎤 Enter the artist name (or type 'exit' to quit): ").strip()
+
         if artist_name.lower() == "exit":
             print("\n👋 Exiting metadata merger. See you next time!\n")
             break
+
         if not artist_name:
             print("⚠️ Please enter a valid artist name.\n")
             continue
 
+        # Define paths to input and output CSVs
         spotify_csv = f"raw/SPOTIFY/{artist_name}/{artist_name}_metadata.csv"
         wikidata_csv = f"raw/WIKIDATA/{artist_name}/wikidata_summary.csv"
         output_csv = f"transformations/SPOTIFY/{artist_name}/{artist_name}_merged_metadata.csv"
 
         try:
+            # Attempt to merge the artist metadata
             merge_artist_metadata(spotify_csv, wikidata_csv, output_csv)
         except Exception as e:
+            # Log any errors during the merge process
             print(f"❌ Error merging metadata for {artist_name}: {e}\n")
+
 
 if __name__ == "__main__":
     main()
